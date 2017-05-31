@@ -1,0 +1,24 @@
+{
+  "name": "tincnode2.tincvpn.vagrant",
+  "normal": {
+    "tincvpn": {
+      "networks": {
+        "default": {
+          "network": {
+            "port": 652
+          },
+          "host": {
+            "name": "tincnode2",
+            "address": "15.0.0.2",
+            "subnets": [ "10.2.0.0/24", "172.2.0.0/16"],
+            "pubkey": "test-pubkey2"
+          }
+        }
+      }
+    }
+  },
+  "automatic": {
+    "hostname": "tincnode2",
+    "fqdn": "tincnode2.typo3.vagrant"
+  }
+}

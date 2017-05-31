@@ -1,0 +1,9 @@
+Address = <%= @address %> <%= @port %>
+Cipher=aes-256-cbc
+Digest=sha256
+
+<% @subnets.sort.each do |subnet| %>
+Subnet = <%= subnet %>
+<% end -%>
+
+<%= @pub_key %>

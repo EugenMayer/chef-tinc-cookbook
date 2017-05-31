@@ -1,0 +1,47 @@
+---
+driver:
+  name: vagrant
+
+
+provisioner:
+  name: chef_zero
+  # You may wish to disable always updating cookbooks in CI or other testing environments.
+  # For example:
+  #   always_update_cookbooks: <%= !ENV['CI'] %>
+  always_update_cookbooks: true
+  # see https://github.com/chef-cookbooks/chef-vault/blob/master/.kitchen.yml for more
+  nodes_path: test/fixtures/nodes
+
+verifier:
+  name: inspec
+
+platforms:
+  - name: debian-8.6
+
+suites:
+  - name: default
+    run_list:
+      - recipe[tincvpn::default]
+    attributes:
+      tincvpn:
+        networks:
+          default:
+            host:
+              name: 'tincvpn3'
+              subnets:
+                - '10.3.0.0/24'
+                - '172.3.0.0/16'
+  - name: switch
+    run_list:
+      - recipe[tincvpn::default]
+    attributes:
+      tincvpn:
+        networks:
+          default:
+            network:
+              mode: "switch"
+            host:
+              name: 'tincvpn3'
+              subnets:
+                - '10.3.0.0/24'
+                - '172.3.0.0/16'
