@@ -28,6 +28,9 @@ suites:
           default:
             host:
               name: 'tincvpn3'
+              connect_to:
+                - 'tincnode1'
+                - 'tincnode2'
               subnets:
                 - '10.3.0.0/24'
                 - '172.3.0.0/16'

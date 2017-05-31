@@ -11,6 +11,7 @@ describe file('/etc/tinc/default/tinc.conf') do
   its('content') { should match "Port = 655" }
   its('content') { should match "ConnectTo = tincnode1" }
   its('content') { should match "ConnectTo = tincnode2" }
+  its('content') { should_not match "ConnectTo = tincnode4" }
   its('content') { should match "Mode = router" }
   its('content') { should match "Name = tincvpn3" }
 end
@@ -51,6 +52,12 @@ describe file('/etc/tinc/default/hosts/tincnode2') do
   its('content') { should match "test-pubkey2" }
 end
 
+# we excluded that one in our attributes
+describe file('/etc/tinc/default/hosts/tincnode4') do
+  it { should_not exist }
+end
+
+# thats our own host
 describe file('/etc/tinc/default/hosts/tincvpn3') do
   it { should exist }
   its('content') { should match "10\.3\.0\.0/24" }
