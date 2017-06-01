@@ -2,6 +2,6 @@ Name = <%= @name %>
 AddressFamily = any
 Mode = <%= @mode %>
 Port = <%= @port %>
-<% @hosts_ConnectTo.sort.each do |connect_to| %>
+<% @hosts_connect_to.sort.each do |connect_to| %>
 ConnectTo = <%= connect_to %>
 <% end -%>
