@@ -1,7 +1,15 @@
 # Description
 
-Installs tinc vpn and configure all your hosts and networks. Hosts are actually looked up using a node search, picking all nodes
-having the same network deployed
+Installs [tinc vpn](https://www.tinc-vpn.org/) for meshed VPN networks.
+
+  - supports multiple networks per node
+  - connect_to can be either configured manually or extracted using node-search
+  - you can run router and switch mode, the latter is for unicast/multicast enabled networks
+  
+All you need is deploying this cookbook on several nodes while using the same network name - the connection between those nodes (hosts)
+will be configured automatically (published hosts/ with public keys)
+
+Available on the [chef supermarket](https://supermarket.chef.io/cookbooks/tincvpn)
 
 # Requirements
 
@@ -15,22 +23,8 @@ having the same network deployed
 * openssl (= 4.4.0)
 
 # Attributes
-	# choose your network name, right here default - pick what you want
-	# you can also define multiple networks, ensure you handle the ports though!
-	# mode is either router, switch or hub, see https://www.tinc-vpn.org/documentation/tinc.conf.5
-    default[:tincvpn][:networks]['default'][:network][:mode] = 'router'
-    default[:tincvpn][:networks]['default'][:network][:port] = 655
-    # that is the virtual network the tinc mesh nodes connect to (not your LAN you will join/offer, see subnets)
-    default[:tincvpn][:networks]['default'][:network][:tunneladdr] = '172.25.0.1'
-    default[:tincvpn][:networks]['default'][:network][:tunnelnetmask] = '255.255.255.0'
-    # mandatory, you need to set this to a name of the host, like node1 or whatever
-    default[:tincvpn][:networks]['default'][:host][:name] = nil
-    # which nodes this host should be able to connect to. If you skip, any node in this network will be a connect target
-    default[:tincvpn][0][:host][:connect_to] = []
-    # define the subnets you want to share of your networks, like you LAN or whatever
-    default[:tincvpn][:networks]['default'][:host][:subnets] = []
-    # will default to fqdn when not set
-    default[:tincvpn][:networks]['default'][:host][:address] = nil
+
+See [tincvpn.rb](https://github.com/EugenMayer/chef-tinc-cookbook/blob/master/attributes/tincvpn.rb) for the available attributes and how to use them 
 
 # Recipes
 
@@ -40,6 +34,12 @@ having the same network deployed
 
 Installs tinc and configure all your hosts and networks. Hosts are actually looked up using a node search, picking all nodes
 having the same network deployed
+
+# Contributions
+
+I am very happy to accept this PRs or work on issues to extend the usage of this cookbook.
+
+Just use the [issue queue](https://github.com/EugenMayer/chef-tinc-cookbook/issues) or even better, create pull requests for what you like to improve.
 
 # License and Maintainer
 
