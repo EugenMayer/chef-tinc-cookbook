@@ -46,7 +46,7 @@ node['tincvpn']['networks'].each do |network_name, network|
 
   ruby_block "publish-public-key-#{network_name}" do
     block do
-      node.default['tincvpn']['networks'][network_name]['host']['pubkey'] = File.read("/etc/tinc/#{network_name}/rsa_key.pub")
+      node.set['tincvpn']['networks'][network_name]['host']['pubkey'] = File.read("/etc/tinc/#{network_name}/rsa_key.pub")
     end
     action :nothing
   end
