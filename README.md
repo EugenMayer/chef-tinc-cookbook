@@ -35,6 +35,14 @@ See [tincvpn.rb](https://github.com/EugenMayer/chef-tinc-cookbook/blob/master/at
 Installs tinc and configure all your hosts and networks. Hosts are actually looked up using a node search, picking all nodes
 having the same network deployed
 
+# Tests
+
+You can run the test using kitchen
+
+    chef exec kitchen converge
+    
+There are to test suites, `default` for testing anything with router mode and `switch` to ensure we can set the mode properly/
+
 # Contributions
 
 I am very happy to accept this PRs or work on issues to extend the usage of this cookbook.
