@@ -76,7 +76,7 @@ node['tincvpn']['networks'].each do |network_name, network|
     defined_connect_to = node['tincvpn']['networks'][network_name]['host']['connect_to']
 
     # should we connect to the host
-    next if defined_connect_to.length && !defined_connect_to.include?(host_name)
+    #next if defined_connect_to.length && !defined_connect_to.include?(host_name)
 
     host_addr = peer['fqdn']
     host_addr = peer['tincvpn']['networks'][network_name]['host']['address'] unless peer['tincvpn']['networks'][network_name]['host']['address'].nil?
