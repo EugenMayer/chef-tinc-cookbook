@@ -20,10 +20,12 @@ node['tincvpn']['networks'].each do |network_name, network|
 
   directory "/etc/tinc/#{network_name}"
   directory "/etc/tinc/#{network_name}/hosts"
-
+  local_host_name = node['tincvpn']['networks'][network_name]['host'][:name]
+  local_host_path = "/etc/tinc/#{network_name}/hosts/#{local_host_name}"
   priv_key_location = "/etc/tinc/#{network_name}/rsa_key.priv"
+
   execute "generate-#{network_name}-keys" do
-    command "yes | tincd  -n #{network_name} -K4096"
+    command "rm -f #{local_host_path} && rm -f /etc/tinc/#{network_name}/tinc.conf && (yes | tincd  -n #{network_name} -K4096)"
     creates priv_key_location
     notifies :run, "ruby_block[publish-public-key-#{network_name}]", :immediately
     not_if { File.exist?(priv_key_location) }
@@ -32,10 +34,10 @@ node['tincvpn']['networks'].each do |network_name, network|
   # local host entry in hosts/
   host_addr = node['fqdn']
   host_addr = node['tincvpn']['networks'][network_name]['host']['address'] unless node['tincvpn']['networks'][network_name]['host']['address'].nil?
-  template "/etc/tinc/#{network_name}/hosts/#{node['tincvpn']['networks'][network_name]['host'][:name]}" do
+  template local_host_path do
     source 'host.erb'
     variables(
-      pub_key: lazy {File.read("/etc/tinc/#{network_name}/rsa_key.pub")},
+      pub_key: lazy { File.read("/etc/tinc/#{network_name}/rsa_key.pub") },
       address: host_addr,
       port: node['tincvpn']['networks'][network_name]['network']['port'],
       subnets: node['tincvpn']['networks'][network_name]['host']['subnets']
