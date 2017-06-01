@@ -26,4 +26,5 @@
       </map>
     </list>
   </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="false" project-jdk-name="Chef DK: /opt/chefdk" project-jdk-type="RUBY_SDK" />
 </project>
