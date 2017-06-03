@@ -16,11 +16,11 @@ end
 
 
 node['tincvpn']['networks'].each do |network_name, network|
-  raise "You need to set the host name for the tinc network #{network_name} in ['tincvpn']['networks'][#{network_name}]['network']['host'][:name]" if network['host']['name'].nil?
+  raise "You need to set the host name for the tinc network #{network_name} in ['tincvpn']['networks'][#{network_name}]['network']['host']['name']" if network['host']['name'].nil?
 
   directory "/etc/tinc/#{network_name}"
   directory "/etc/tinc/#{network_name}/hosts"
-  local_host_name = node['tincvpn']['networks'][network_name]['host'][:name]
+  local_host_name = node['tincvpn']['networks'][network_name]['host']['name']
   local_host_path = "/etc/tinc/#{network_name}/hosts/#{local_host_name}"
   priv_key_location = "/etc/tinc/#{network_name}/rsa_key.priv"
 
@@ -72,12 +72,11 @@ node['tincvpn']['networks'].each do |network_name, network|
   peers = search(:node, "tincvpn_networks_#{network_name}_host_pubkey:*")
 
   peers.each do |peer|
-    host_name = peer['tincvpn']['networks'][network_name]['host'][:name]
+    host_name = peer['tincvpn']['networks'][network_name]['host']['name']
     defined_connect_to = node['tincvpn']['networks'][network_name]['host']['connect_to']
 
     # should we connect to the host
-    next if defined_connect_to.length > 0 && !defined_connect_to.include?(host_name)
-
+    next if !defined_connect_to.empty? && !defined_connect_to.include?(host_name)
     host_addr = peer['fqdn']
     host_addr = peer['tincvpn']['networks'][network_name]['host']['address'] unless peer['tincvpn']['networks'][network_name]['host']['address'].nil?
     host_pubkey = peer['tincvpn']['networks'][network_name]['host']['pubkey']
@@ -92,8 +91,9 @@ node['tincvpn']['networks'].each do |network_name, network|
       )
       notifies :reload, 'service[tinc]', :delayed
     end
-
-    hosts_connect_to << host_name
+    
+    # do not add ourselfs to the list of nodes we should connect to
+    hosts_connect_to << host_name unless  host_name == local_host_name
   end
 
   ########################################################################################
@@ -105,7 +105,7 @@ node['tincvpn']['networks'].each do |network_name, network|
       name: network['host']['name'],
       port: network['network']['port'],
       hosts_connect_to: hosts_connect_to,
-      mode: network['network']['mode'],
+      mode: network['network']['mode']
     )
     notifies :reload, 'service[tinc]', :delayed
   end
