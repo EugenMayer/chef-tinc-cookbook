@@ -17,6 +17,7 @@ end
 
 node['tincvpn']['networks'].each do |network_name, network|
   raise "You need to set the host name for the tinc network #{network_name} in ['tincvpn']['networks'][#{network_name}]['network']['host']['name']" if network['host']['name'].nil?
+  raise 'You defined siwtch as you mode, but also defined subnets - this is now allowed by tinc' if !node['tincvpn']['networks'][network_name]['host']['subnets'].empty? && network['network']['mode'] == 'switch'
 
   directory "/etc/tinc/#{network_name}"
   directory "/etc/tinc/#{network_name}/hosts"
@@ -24,6 +25,9 @@ node['tincvpn']['networks'].each do |network_name, network|
   local_host_path = "/etc/tinc/#{network_name}/hosts/#{local_host_name}"
   priv_key_location = "/etc/tinc/#{network_name}/rsa_key.priv"
 
+  # we use the tinc tool to generate the priv and public key, since openssl with public key is kind of complicated with chef
+  # we remove the tinc.conf before we generate, since otherwise the public key will not be saved in /etc/tinc/#{network_name}/rsa_key.pub
+  # but rather in the hosts/<localname> file - and we do not want that for simplicity of extraction
   execute "generate-#{network_name}-keys" do
     command "rm -f #{local_host_path} && rm -f /etc/tinc/#{network_name}/tinc.conf && (yes | tincd  -n #{network_name} -K4096)"
     creates priv_key_location
@@ -32,6 +36,7 @@ node['tincvpn']['networks'].each do |network_name, network|
   end
 
   # local host entry in hosts/
+  # thats basically "us in the hosts file" - this is needed and mandaory
   host_addr = node['fqdn']
   host_addr = node['tincvpn']['networks'][network_name]['host']['address'] unless node['tincvpn']['networks'][network_name]['host']['address'].nil?
   template local_host_path do
@@ -44,6 +49,7 @@ node['tincvpn']['networks'].each do |network_name, network|
     )
   end
 
+  # a ruby block is used to ensure order of execution - so in the case "generate-#{network_name}-keys" needs to be run first
   ruby_block "publish-public-key-#{network_name}" do
     block do
       node.normal['tincvpn']['networks'][network_name]['host']['pubkey'] = File.read("/etc/tinc/#{network_name}/rsa_key.pub")
@@ -51,7 +57,7 @@ node['tincvpn']['networks'].each do |network_name, network|
     action :nothing
   end
 
-  # tinc up/down
+  # tinc up/down - mainly defining our tunnel network and our tunnel network address
   %w{up down}.each do |action|
     template "/etc/tinc/#{network_name}/tinc-#{action}" do
       source "tinc-#{action}.erb"
@@ -65,18 +71,20 @@ node['tincvpn']['networks'].each do |network_name, network|
   end
 
   ########################################################################################
-  ######## put all the hosts in place we can connect to, search for the nodes in chef
+  ######## put all the remote hosts in place we can connect to, search for the nodes in chef
   ########################################################################################
-  # all the remote ones
+  # all the remote hosts
   hosts_connect_to = []
+  # any other node having a public key and joined the same network
   peers = search(:node, "tincvpn_networks_#{network_name}_host_pubkey:*")
 
   peers.each do |peer|
     host_name = peer['tincvpn']['networks'][network_name]['host']['name']
     defined_connect_to = node['tincvpn']['networks'][network_name]['host']['connect_to']
 
-    # should we connect to the host
+    # filter hosts we did not want to connect to (if the whitelist exists)
     next if !defined_connect_to.empty? && !defined_connect_to.include?(host_name)
+
     host_addr = peer['fqdn']
     host_addr = peer['tincvpn']['networks'][network_name]['host']['address'] unless peer['tincvpn']['networks'][network_name]['host']['address'].nil?
     host_pubkey = peer['tincvpn']['networks'][network_name]['host']['pubkey']
@@ -92,7 +100,7 @@ node['tincvpn']['networks'].each do |network_name, network|
       notifies :reload, 'service[tinc]', :delayed
     end
     
-    # do not add ourselfs to the list of nodes we should connect to
+    # add all hosts to our connectTo list, except ourselfs
     hosts_connect_to << host_name unless  host_name == local_host_name
   end
 
