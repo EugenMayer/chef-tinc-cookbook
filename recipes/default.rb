@@ -14,7 +14,9 @@ template '/etc/default/tinc' do
   notifies :restart, 'service[tinc]'
 end
 
-
+# for each tinc network which has been define on that node, create the configuration for each and find all other nodes( peers )
+# using chef-search, which do have the same networks, and create hosts files on this node for those with their public key
+# so they can actually connect to each other
 node['tincvpn']['networks'].each do |network_name, network|
   raise "You need to set the host name for the tinc network #{network_name} in ['tincvpn']['networks'][#{network_name}]['network']['host']['name']" if network['host']['name'].nil?
   raise 'You defined siwtch as you mode, but also defined subnets - this is now allowed by tinc' if !node['tincvpn']['networks'][network_name]['host']['subnets'].empty? && network['network']['mode'] == 'switch'
@@ -80,9 +82,14 @@ node['tincvpn']['networks'].each do |network_name, network|
 
   peers.each do |peer|
     host_name = peer['tincvpn']['networks'][network_name]['host']['name']
+    # skip if the node found is actually then node we run on, since that host file has been written already above
+    # and the values in the search would be outdated anyway
+    next if host_name == node['tincvpn']['networks'][network_name]['host']['name']
+
+    # check which hosts this peers defined to connect to
     defined_connect_to = node['tincvpn']['networks'][network_name]['host']['connect_to']
 
-    # filter hosts we did not want to connect to (if the whitelist exists)
+    # filter hosts we did not want to connect to on this peer (if the whitelist exists)
     next if !defined_connect_to.empty? && !defined_connect_to.include?(host_name)
 
     host_addr = peer['fqdn']
@@ -101,11 +108,11 @@ node['tincvpn']['networks'].each do |network_name, network|
     end
     
     # add all hosts to our connectTo list, except ourselfs
-    hosts_connect_to << host_name unless  host_name == local_host_name
+    hosts_connect_to << host_name
   end
 
   ########################################################################################
-  ######## put all the hosts in place we can connect to, search for the nodes in chef deploy our network configs
+  ######## deploy our node network configuration
   ########################################################################################
   template "/etc/tinc/#{network_name}/tinc.conf" do
     source 'tinc.conf.erb'

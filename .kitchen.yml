@@ -17,6 +17,7 @@ verifier:
 
 platforms:
   - name: debian-8.6
+  - name: debian-9.0
 
 suites:
   - name: default
@@ -45,6 +46,4 @@ suites:
               mode: "switch"
             host:
               name: 'tincvpn3'
-              subnets:
-                - '10.3.0.0/24'
-                - '172.3.0.0/16'
+              address: "15.0.0.16"

@@ -3,11 +3,9 @@
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$" type="cookbooks-root" />
+      <sourceFolder url="file://$MODULE_DIR$" isTestSource="false" />
     </content>
     <orderEntry type="jdk" jdkName="Chef DK: /opt/chefdk" jdkType="RUBY_SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" scope="PROVIDED" name="bundler (v1.12.5, Chef DK: /opt/chefdk) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="chef (v12.19.36, Chef DK: /opt/chefdk) [gem]" level="application" />
   </component>
 </module>
