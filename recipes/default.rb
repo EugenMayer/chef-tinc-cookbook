@@ -124,6 +124,14 @@ node['tincvpn']['networks'].each do |network_name, network|
     )
     notifies :reload, 'service[tinc]', :delayed
   end
+
+  # we need this for systemd configuration starting from debian-stretch
+  # /etc/tinc/nets.boot are no longer working / is ignored, see https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=841052#27
+  if node['lsb']['codename'] == 'stretch'
+    service "tinc@#{network_name}" do
+    action [ :enable, :start ]
+    end
+  end
 end
 
 # finally let our networks boot
