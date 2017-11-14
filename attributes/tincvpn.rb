@@ -14,3 +14,8 @@ default[:tincvpn][:networks]['default'][:host][:connect_to] = []
 default[:tincvpn][:networks]['default'][:host][:subnets] = []
 # will default to fqdn when not set
 default[:tincvpn][:networks]['default'][:host][:address] = nil
+
+# use zeroconf with automatic ip and dns management
+# see https://www.tinc-vpn.org/examples/zeroconf-ip-and-dns/ for details
+
+default[:tincvpn][:networks]['default'][:host][:avahi_zeroconf_enabled] = false
