@@ -16,7 +16,8 @@ verifier:
   name: inspec
 
 platforms:
-  - name: ubuntu-16.04
+  - name: debian-8.6
+  - name: debian-9.0
 
 suites:
   - name: default

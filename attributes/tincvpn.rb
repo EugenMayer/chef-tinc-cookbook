@@ -16,6 +16,6 @@ default[:tincvpn][:networks]['default'][:host][:subnets] = []
 default[:tincvpn][:networks]['default'][:host][:address] = nil
 
 # use zeroconf with automatic ip and dns management
-# see https://www.tinc-vpn.org/examples/zeroconf-ip-and-dns/ for details
-
+# see https://www.tinc-vpn.org/examples/zeroconf-ip-and-dns/ for details.
+# When using this option network mode always switch and subnets are always empty array
 default[:tincvpn][:networks]['default'][:host][:avahi_zeroconf_enabled] = false
