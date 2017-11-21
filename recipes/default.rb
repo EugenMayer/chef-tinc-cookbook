@@ -153,6 +153,6 @@ template '/etc/tinc/nets.boot' do
   variables(
     networks: node['tincvpn']['networks'].keys
   )
-  notifies :restart, 'service[tinc]', :delayed
+  notifies :restart, 'service[tinc]', :immediately
 end
 
