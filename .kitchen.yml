@@ -47,3 +47,21 @@ suites:
             host:
               name: 'tincvpn3'
               address: "15.0.0.16"
+
+  - name: avahi_zeroconf
+    run_list:
+      - recipe[tincvpn::default]
+    attributes:
+      tincvpn:
+        networks:
+          default:
+            host:
+              name: 'tincvpn3'
+              address: "15.0.0.16"
+              avahi_zeroconf_enabled: true
+              subnets:
+                - '10.3.0.0/24'
+                - '172.3.0.0/16'
+              connect_to:
+                - 'tincnode1'
+                - 'tincnode2'

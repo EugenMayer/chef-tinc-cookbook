@@ -1,5 +1,6 @@
 require 'openssl'
 
+
 package %w(tinc bridge-utils)
 # prepared for later multi-network per host deployments, not implemented yet
 
@@ -19,13 +20,24 @@ end
 # so they can actually connect to each other
 node['tincvpn']['networks'].each do |network_name, network|
   raise "You need to set the host name for the tinc network #{network_name} in ['tincvpn']['networks'][#{network_name}]['network']['host']['name']" if network['host']['name'].nil?
-  raise 'You defined siwtch as you mode, but also defined subnets - this is now allowed by tinc' if !node['tincvpn']['networks'][network_name]['host']['subnets'].empty? && network['network']['mode'] == 'switch'
+  raise 'You defined switch as you mode, but also defined subnets - this is now allowed by tinc' if !node['tincvpn']['networks'][network_name]['host']['subnets'].empty? && network['network']['mode'] == 'switch'
 
   directory "/etc/tinc/#{network_name}"
   directory "/etc/tinc/#{network_name}/hosts"
   local_host_name = node['tincvpn']['networks'][network_name]['host']['name']
   local_host_path = "/etc/tinc/#{network_name}/hosts/#{local_host_name}"
   priv_key_location = "/etc/tinc/#{network_name}/rsa_key.priv"
+
+  avahi_zeroconf_enabled = node['tincvpn']['networks'][network_name]['host']['avahi_zeroconf_enabled']
+
+  if avahi_zeroconf_enabled
+    package %w(avahi-daemon avahi-utils avahi-autoipd)
+
+    service 'avahi-daemon' do
+      action [ :enable, :start ]
+    end
+  end
+
 
   # we use the tinc tool to generate the priv and public key, since openssl with public key is kind of complicated with chef
   # we remove the tinc.conf before we generate, since otherwise the public key will not be saved in /etc/tinc/#{network_name}/rsa_key.pub
@@ -47,7 +59,7 @@ node['tincvpn']['networks'].each do |network_name, network|
       pub_key: lazy { File.read("/etc/tinc/#{network_name}/rsa_key.pub") },
       address: host_addr,
       port: node['tincvpn']['networks'][network_name]['network']['port'],
-      subnets: node['tincvpn']['networks'][network_name]['host']['subnets']
+      subnets: avahi_zeroconf_enabled ? [] : node['tincvpn']['networks'][network_name]['host']['subnets']
     )
   end
 
@@ -67,6 +79,7 @@ node['tincvpn']['networks'].each do |network_name, network|
       variables(
         tunnel_address: network['network']['tunneladdr'],
         tunnel_netmask: network['network']['tunnelnetmask'],
+        avahi_zeroconf_enabled: avahi_zeroconf_enabled
       )
       notifies :reload, 'service[tinc]', :delayed
     end
@@ -102,11 +115,11 @@ node['tincvpn']['networks'].each do |network_name, network|
         address: host_addr,
         pub_key: host_pubkey,
         port: peer['tincvpn']['networks'][network_name]['network']['port'],
-        subnets: peer['tincvpn']['networks'][network_name]['host']['subnets']
+        subnets: avahi_zeroconf_enabled ? [] : peer['tincvpn']['networks'][network_name]['host']['subnets']
       )
       notifies :reload, 'service[tinc]', :delayed
     end
-    
+
     # add all hosts to our connectTo list, except ourselfs
     hosts_connect_to << host_name
   end
@@ -120,7 +133,7 @@ node['tincvpn']['networks'].each do |network_name, network|
       name: network['host']['name'],
       port: network['network']['port'],
       hosts_connect_to: hosts_connect_to,
-      mode: network['network']['mode']
+      mode: avahi_zeroconf_enabled ? 'switch' : network['network']['mode']
     )
     notifies :reload, 'service[tinc]', :delayed
   end
@@ -140,6 +153,6 @@ template '/etc/tinc/nets.boot' do
   variables(
     networks: node['tincvpn']['networks'].keys
   )
-  notifies :restart, 'service[tinc]', :delayed
+  notifies :restart, 'service[tinc]', :immediately
 end
 

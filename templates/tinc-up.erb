@@ -1,3 +1,6 @@
 #!/bin/sh
-
-ifconfig $INTERFACE <%=@tunnel_address%> netmask <%=@tunnel_netmask%>
+<% if @avahi_zeroconf_enabled %>
+avahi-autoipd --daemonize --wait $INTERFACE
+<% else %>
+ifconfig $INTERFACE <%= @tunnel_address%> netmask <%=@tunnel_netmask %>
+<% end %>
