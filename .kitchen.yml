@@ -16,8 +16,8 @@ verifier:
   name: inspec
 
 platforms:
-  - name: debian-8.6
-  - name: debian-9.0
+  #- name: debian-8.6
+  - name: debian-9.3
 
 suites:
   - name: default
@@ -48,7 +48,7 @@ suites:
               name: 'tincvpn3'
               address: "15.0.0.16"
 
-  - name: avahi_zeroconf
+  - name: avahi-zeroconf
     run_list:
       - recipe[tincvpn::default]
     attributes:
