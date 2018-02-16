@@ -1,7 +1,7 @@
 property :network_name, String, name_property: true, required: true
 property :host_name, String, required: true
 property :host_port, [Integer, String], required: true
-property :network_mode, String, default: 'router'
+property :network_mode, ['router', 'switch', 'hub'], default: 'router'
 property :connect_to, Array, default: []
 
 action :create do

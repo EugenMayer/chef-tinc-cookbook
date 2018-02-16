@@ -28,7 +28,7 @@ end
 
 describe file('/etc/tinc/default/tinc-down') do
   it { should exist }
-  its('content') { should match "ifconfig [$]INTERFACE down" }
+  its('content') { should_not match "ifconfig [$]INTERFACE down" }
 end
 
 describe file('/etc/tinc/default/rsa_key.priv') do

@@ -13,8 +13,6 @@ action :generate do
     SHELL
     creates "/etc/tinc/#{new_resource.network_name}/rsa_key.priv"
   end
-
-  action_publish_public_key
 end
 
 action :publish_public_key do
