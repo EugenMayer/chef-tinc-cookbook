@@ -15,4 +15,4 @@ bin/*
 .kitchen/
 .kitchen.local.yml
 
-.idea/workspace.xml
+.idea

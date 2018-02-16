@@ -1,6 +1,7 @@
 ---
 driver:
   name: vagrant
+  provider: libvirt
 
 
 provisioner:
@@ -16,8 +17,9 @@ verifier:
   name: inspec
 
 platforms:
-  #- name: debian-8.6
   - name: debian-9.3
+    driver:
+      box: generic/debian9
 
 suites:
   - name: default
