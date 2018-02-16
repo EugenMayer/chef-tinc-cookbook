@@ -2,7 +2,7 @@ require 'ostruct'
 
 module TincVpn
   module PeerHelper
-    def exctract_peer_data(peer, network_name)
+    def extract_peer_data(peer, network_name)
       OpenStruct.new(
         name:    peer['tincvpn']['networks'][network_name]['host']['name'],
         address: peer['tincvpn']['networks'][network_name]['host']['address'],

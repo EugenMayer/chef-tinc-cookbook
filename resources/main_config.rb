@@ -7,7 +7,7 @@ property :connect_to, Array, default: []
 action :create do
   action_create_config_dirs
 
-  template "/etc/tinc/#{new_resouce.network_name}/tinc.conf" do
+  template "/etc/tinc/#{new_resource.network_name}/tinc.conf" do
     source 'tinc.conf.erb'
     variables(
       name: new_resource.host_name,

@@ -1,4 +1,5 @@
-package %w(tinc bridge-utils)
+# net-tools contains deprecated ifconfig executable
+package %w(tinc bridge-utils net-tools)
 
 service 'tinc' do
   action [ :enable, :start ]

@@ -12,7 +12,7 @@ action :create do
       source "tinc-#{action}.erb"
       mode '0755'
       variables(
-        tunnel_address: new_resource.tunnel_address
+        tunnel_address: new_resource.tunnel_address,
         tunnel_netmask: new_resource.tunnel_netmask
       )
       notifies :reload, 'service[tinc]'

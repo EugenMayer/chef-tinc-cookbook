@@ -11,6 +11,7 @@ node['tincvpn']['networks'].each do |network_name, network|
   include_recipe 'tincvpn::install_avahi' if avahi_zeroconf_enabled
 
   tincvpn_keypair network_name do
+    host_name network['host']['name']
     action :generate
   end
 
@@ -46,7 +47,7 @@ node['tincvpn']['networks'].each do |network_name, network|
   peers = search(
     :node, "tincvpn_networks_#{network_name}_host_pubkey:*"
   ).map do |peer|
-    peer_data = exctact_peer_data(peer)
+    peer_data = extract_peer_data(peer, network_name)
 
     next unless peer_valid?(peer_data, network)
 
@@ -54,8 +55,8 @@ node['tincvpn']['networks'].each do |network_name, network|
       network_name network_name
       host_address peer_data.address || node['fqdn']
       host_port    peer_data.port
-      host_pubkey  peer_data.port
-      subnets      peer_data.subnets
+      host_pubkey  peer_data.pubkey
+      host_subnets peer_data.subnets
     end 
 
     peer_data.name
@@ -72,7 +73,8 @@ node['tincvpn']['networks'].each do |network_name, network|
   # we need this for systemd configuration starting from debian-stretch
   if node['lsb']['codename'] == 'stretch'
     service "tinc@#{network_name}" do
-    action [ :enable, :start ]
+      action [ :enable, :start ]
+    end
   end
 end
 
@@ -84,4 +86,3 @@ template '/etc/tinc/nets.boot' do
   )
   notifies :restart, 'service[tinc]', :immediately
 end
-
