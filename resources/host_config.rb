@@ -8,7 +8,7 @@ property :host_subnets, Array, default: []
 action :create do
   action_create_config_dirs
 
-  template "/etc/tinc/#{new_resource.network_name}/hosts/#{host_name}" do
+  template "/etc/tinc/#{new_resource.network_name}/hosts/#{new_resource.host_name}" do
     source 'host.erb'
     variables(
       pub_key: new_resource.host_pubkey,

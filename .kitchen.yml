@@ -1,8 +1,6 @@
 ---
 driver:
   name: vagrant
-  provider: libvirt
-
 
 provisioner:
   name: chef_zero
@@ -18,8 +16,7 @@ verifier:
 
 platforms:
   - name: debian-9.3
-    driver:
-      box: generic/debian9
+  - name: ubuntu-16.04
 
 suites:
   - name: default

@@ -15,15 +15,6 @@ action :generate do
   end
 end
 
-action :publish_public_key do
-  ruby_block "publish-public-key-for-#{new_resource.network_name}" do
-    block do
-      node.normal['tincvpn']['networks'][new_resource.network_name]['host']['pubkey'] =
-        ::File.read("/etc/tinc/#{network_name}/rsa_key.pub")
-    end
-  end
-end
-
 action :create_config_dirs do
   directory "/etc/tinc/#{new_resource.network_name}"
   directory "/etc/tinc/#{new_resource.network_name}/hosts"

@@ -26,7 +26,6 @@ node['tincvpn']['networks'].each do |network_name, network|
 
   tincvpn_keypair network_name do
     host_name network['host']['name']
-    action [:generate, :publish_public_key]
   end
 
   # current node configuration
@@ -73,9 +72,16 @@ node['tincvpn']['networks'].each do |network_name, network|
     connect_to   peers
   end
 
+  tincvpn_attributes_publishing network_name do
+    host_name    network['host']['name']
+    host_address network['host']['address'] || node['fqdn']
+    host_pubkey  lazy { ::File.read("/etc/tinc/#{network_name}/rsa_key.pub") }
+    host_subnets network['host']['subnets']
+    network_port network['network']['port']
+  end
 
-
-  # we need this for systemd configuration starting from debian-stretch
+  # we need this for systemd configuration for debian-stretch
+  # ubuntu still uses old way
   if node['lsb']['codename'] == 'stretch'
     service "tinc@#{network_name}" do
       action [ :enable, :start ]

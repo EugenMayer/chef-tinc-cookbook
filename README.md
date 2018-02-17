@@ -18,9 +18,9 @@ Available on the [chef supermarket](https://supermarket.chef.io/cookbooks/tincvp
 * debian
 * ubuntu
 
-## Cookbooks:
+## Dependencies:
 
-* openssl (= 4.4.0)
+This cookbook has no dependencies on other cookbooks
 
 # Attributes
 
@@ -33,7 +33,13 @@ See [tincvpn.rb](https://github.com/EugenMayer/chef-tinc-cookbook/blob/master/at
 ## tincvpn::default
 
 Installs tinc and configure all your hosts and networks. Hosts are actually looked up using a node search, picking all nodes
-having the same network deployed
+having the same network deployed. You can choose to use avahi zeroconf (via attribute), this will allow automatic ip assignment
+and dns resolution inside tinc network.
+
+# Custom Resources
+
+Custom resources allow to have more granular control during tinc configuration
+
 
 # Tests
 

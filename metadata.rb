@@ -11,6 +11,5 @@ chef_version      '>= 13'
   supports os
 end
 
-depends          'openssl', '= 4.4.0'
 source_url       'https://github.com/EugenMayer/chef-tinc-cookbook'
 issues_url       'https://github.com/EugenMayer/chef-tinc-cookbook/issues'

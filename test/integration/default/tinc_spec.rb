@@ -53,11 +53,6 @@ describe file('/etc/tinc/default/hosts/tincnode2') do
   its('content') { should match "test-pubkey2" }
 end
 
-describe service('tinc@default') do
-  it { should be_installed }
-  it { should be_enabled }
-end
-
 # we excluded that one in our attributes
 describe file('/etc/tinc/default/hosts/tincnode4') do
   it { should_not exist }
