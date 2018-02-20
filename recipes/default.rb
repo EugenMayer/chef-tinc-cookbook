@@ -64,6 +64,7 @@ node[:tincvpn][:networks].each do |network_name, network|
     peer_data = extract_peer_data(peer, network_name)
 
     next unless peer_valid?(peer_data, network)
+    Chef::Log.debug "Adding peer #{peer.name}"
 
     tincvpn_host_config peer_data.name do
       network_name network_name
