@@ -88,13 +88,18 @@ node.default[:tincvpn][:networks][:mynet][:host][:name] = node.name
 node.default[:tincvpn][:networks][:aads][:host][:address] = node[:ipaddress]
 ```
 
-# Tests
+## ToDo
+- add rubocop and foodcritic for code quality check
+- add centOS support
+- add description of custom resources
+
+## Tests
 
 You can run the test using kitchen
 
     kitchen test
 
-# Contributions
+## Contributions
 
 I am very happy to accept this PRs or work on issues to extend the usage of this cookbook.
 
