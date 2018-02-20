@@ -52,6 +52,7 @@ suites:
               mode: 'router'
             host:
               name: 'tincvpn3'
+              address: 'tincvpn3'
               connect_to:
                 - 'tincnode1'
                 - 'tincnode2'
