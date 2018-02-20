@@ -34,6 +34,25 @@ suites:
               subnets:
                 - '10.3.0.0/24'
                 - '172.3.0.0/16'
+
+  - name: custom_network
+    run_list:
+      - recipe[tincvpn::default]
+    attributes:
+      tincvpn:
+        networks:
+          default:
+            disabled: true
+          custom_network:
+            host:
+              name: 'tincvpn3'
+              connect_to:
+                - 'tincnode1'
+                - 'tincnode2'
+              subnets:
+                - '10.3.0.0/24'
+                - '172.3.0.0/16'
+
   - name: switch
     run_list:
       - recipe[tincvpn::default]
