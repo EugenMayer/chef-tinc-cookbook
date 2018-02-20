@@ -35,7 +35,8 @@ suites:
                 - '10.3.0.0/24'
                 - '172.3.0.0/16'
 
-  - name: custom_network
+  - name: custom-network
+    nodes_path: test/fixtures/nodes_custom_network
     run_list:
       - recipe[tincvpn::default]
     attributes:
@@ -44,6 +45,11 @@ suites:
           default:
             disabled: true
           custom_network:
+            network:
+              port: 655
+              tunneladdr: '172.25.0.1'
+              tunnelnetmask: '255.255.255.0'
+              mode: 'router'
             host:
               name: 'tincvpn3'
               connect_to:

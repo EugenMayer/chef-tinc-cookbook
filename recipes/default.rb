@@ -12,10 +12,17 @@ node[:tincvpn][:networks].each do |network_name, network|
   next if network[:disabled]
   active_networks << network_name
 
-  network_mode = network[:network][:mode]
+  begin
+    network_mode = if network[:host][:avahi_zeroconf_enabled]
+                     'switch'
+                   else
+                     network[:network][:mode]
+                   end
+  rescue
+    raise "Network mode is not defined for network #{network_name}"
+  end
 
   if network[:host][:avahi_zeroconf_enabled]
-    network_mode = 'switch'
     include_recipe 'tincvpn::install_avahi'
 
     tincvpn_interface_up_down_avahi_zeroconf network_name do

@@ -1,0 +1,14 @@
+---
+
+driver:
+  name: vagrant
+  provider: libvirt
+
+platforms:
+  - name: debian-9.3
+    driver:
+      box: generic/debian9
+
+  - name: ubuntu-16.04
+    driver:
+      box: generic/ubuntu1604
