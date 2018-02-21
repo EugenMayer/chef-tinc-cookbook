@@ -1,6 +1,6 @@
 property :host_name, String, name_property: true, required: true
 property :network_name, String, required: true
-property :host_address, String, default: node[:fqdn]
+property :host_address, String, required: true
 property :host_pubkey, String, required: true
 property :host_port, [Integer, String], required: true
 property :host_subnets, Array, default: []
