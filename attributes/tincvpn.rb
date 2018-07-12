@@ -3,6 +3,8 @@
 # mode is either router, switch or hub, see https://www.tinc-vpn.org/documentation/tinc.conf.5
 default[:tincvpn][:networks]['default'][:network][:mode] = 'router'
 default[:tincvpn][:networks]['default'][:network][:port] = 655
+# Set interface if needed
+default[:tincvpn][:networks][:default][:network][:interface] = nill  # Ex. 'tun'
 # that is the virtual network the tinc mesh nodes connect to (not your LAN you will join/offer, see subnets)
 default[:tincvpn][:networks]['default'][:network][:tunneladdr] = '172.25.0.1'
 default[:tincvpn][:networks]['default'][:network][:tunnelnetmask] = '255.255.255.0'

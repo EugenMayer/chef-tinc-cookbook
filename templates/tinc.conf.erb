@@ -2,6 +2,7 @@ Name = <%= @name %>
 AddressFamily = any
 Mode = <%= @mode %>
 Port = <%= @port %>
+<%= 'Interface = ' + @interface if @interface %>
 <% @hosts_connect_to.sort.each do |connect_to| %>
 ConnectTo = <%= connect_to %>
 <% end -%>
