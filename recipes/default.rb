@@ -132,6 +132,7 @@ node['tincvpn']['networks'].each do |network_name, network|
     variables(
       name: network['host']['name'],
       port: network['network']['port'],
+      interface: network['network']['interface'],
       hosts_connect_to: hosts_connect_to,
       mode: avahi_zeroconf_enabled ? 'switch' : network['network']['mode']
     )
