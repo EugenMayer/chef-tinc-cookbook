@@ -25,7 +25,7 @@ node['tincvpn']['networks'].each do |network_name, network|
   directory "/etc/tinc/#{network_name}"
   directory "/etc/tinc/#{network_name}/hosts"
   local_host_name = node['tincvpn']['networks'][network_name]['host']['name']
-  local_host_path = "/etc/tinc/#{network_name}/hosts/#{local_host_name}"
+  local_host_path = "/etc/tinc/#{network_name}/hosts/#{local_host_name.gsub('-', '_')}"
   priv_key_location = "/etc/tinc/#{network_name}/rsa_key.priv"
 
   avahi_zeroconf_enabled = node['tincvpn']['networks'][network_name]['host']['avahi_zeroconf_enabled']
@@ -109,7 +109,7 @@ node['tincvpn']['networks'].each do |network_name, network|
     host_addr = peer['tincvpn']['networks'][network_name]['host']['address'] unless peer['tincvpn']['networks'][network_name]['host']['address'].nil?
     host_pubkey = peer['tincvpn']['networks'][network_name]['host']['pubkey']
 
-    template "/etc/tinc/#{network_name}/hosts/#{host_name}" do
+    template "/etc/tinc/#{network_name}/hosts/#{host_name.gsub('-', '_')}" do
       source 'host.erb'
       variables(
         address: host_addr,
@@ -121,7 +121,7 @@ node['tincvpn']['networks'].each do |network_name, network|
     end
 
     # add all hosts to our connectTo list, except ourselfs
-    hosts_connect_to << host_name
+    hosts_connect_to << host_name.gsub('-', '_')
   end
 
   ########################################################################################
@@ -130,7 +130,7 @@ node['tincvpn']['networks'].each do |network_name, network|
   template "/etc/tinc/#{network_name}/tinc.conf" do
     source 'tinc.conf.erb'
     variables(
-      name: network['host']['name'],
+      name: network['host']['name'].gsub('-', '_'),
       port: network['network']['port'],
       hosts_connect_to: hosts_connect_to,
       mode: avahi_zeroconf_enabled ? 'switch' : network['network']['mode']
