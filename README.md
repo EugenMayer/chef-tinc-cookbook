@@ -48,13 +48,14 @@ You can run the test using kitchen
     export KITCHEN_YAML=.kitchen.dokken.yml
     chef exec bundle exec kitchen test
 
-    # just the default suite
+    # dokken based - just the default suite
     export KITCHEN_YAML=.kitchen.dokken.yml
     chef exec bundle exec kitchen test default
 
-    # experimental, docker based ( not dokken )
+    # docker based
     export KITCHEN_YAML=.kitchen.docker.yml
     chef exec bundle exec kitchen test           
+    
 There are to test suites, `default` for testing anything with router mode and `switch` to ensure we can set the mode properly/
 
 # Contributions

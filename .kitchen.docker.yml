@@ -6,10 +6,9 @@
 driver:
   name: docker
   privileged: yes
-  # TODO: doing that, we cannot connect using SSH any longer
-  # TODO: .. not using it, does lead to issues with our cookbook since we expect systemd
-  # TODO: .. also see this issue https://github.com/test-kitchen/kitchen-docker/issues/40
-  # run_command: /bin/systemd
+  run_command: /bin/systemd
+  provision_command:
+    - apt-get install systemd -y
   disable_upstart: false
   cap_add:
     - SYS_ADMIN
