@@ -11,8 +11,6 @@ services:
   - docker
 
 env:
-  global:
-    - CHEF_LICENSE="accept-no-persist"
   - KITCHEN_YAML=.kitchen.dokken.yml
   - KITCHEN_YAML=.kitchen.docker.yml
 before_install: curl -L https://www.getchef.com/chef/install.sh | sudo bash -s -- -P chefdk
