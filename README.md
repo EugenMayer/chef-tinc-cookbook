@@ -47,7 +47,11 @@ You can run the test using kitchen
 
     # just the default suite
     chef exec bundle exec kitchen test default-dokken-debian
-    
+
+
+    # experimental, docker based ( not dokken )
+    export KITCHEN_YAML=.kitchen.docker.yml
+    chef exec bundle exec kitchen test default-debian            
 There are to test suites, `default` for testing anything with router mode and `switch` to ensure we can set the mode properly/
 
 # Contributions

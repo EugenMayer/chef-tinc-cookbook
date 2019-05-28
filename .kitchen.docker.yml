@@ -1,15 +1,22 @@
 ---
-chef_license: accept
+# this is still very early - it seems to be significanly slower then `docken`
+# and yet seems to fail connecting using SSH when we start systemd
 
 driver:
   name: docker
-
+  priviled: yes
+  # TODO: doing that, we cannot connect using SSH any longer
+  #  not using it, does lead to issues with our cookbook since we expect systemd
+  # run_command: /bin/systemd
+  disable_upstart: false
+  cap_add:
+    - SYS_ADMIN
+  socket: unix:///var/run/docker.sock
 provisioner:
   name: chef_zero
   always_update_cookbooks: true
   nodes_path: test/fixtures/nodes
-  product_version: 14.12
-  product_name: chef
+  chef_license: accept
 
 verifier:
   name: inspec
