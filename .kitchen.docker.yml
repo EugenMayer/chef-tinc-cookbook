@@ -1,38 +1,24 @@
 ---
+chef_license: accept
+
+driver:
+  name: docker
+
+provisioner:
+  name: chef_zero
+  always_update_cookbooks: true
+  nodes_path: test/fixtures/nodes
+  product_version: 14.12
+  product_name: chef
+
 verifier:
   name: inspec
 
 platforms:
   # default driver, vagrant
-  - name: debian-9.9
-    driver:
-      name: vagrant
-    provisioner:
-      name: chef_zero
-      always_update_cookbooks: true
-      nodes_path: test/fixtures/nodes
-      product_version: 14.12
-      product_name: chef
-      chef_license: accept
-
-  # dokken based
-  - name: dokken-debian
-    driver:
-      name: dokken
-      pid_one_command: /bin/systemd
-      # image: dokken/debian-9
+  - name: debian
+    driver_config:
       image: debian:stretch
-      intermediate_instructions:
-        # ensure the apt-index is not deleted
-        - RUN rm /etc/apt/apt.conf.d/docker-clean
-    provisioner:
-      name: dokken
-      chef_license: accept
-      always_update_cookbooks: true
-      nodes_path: test/fixtures/nodes
-
-    transport:
-      name: dokken
 
 suites:
   - name: default
@@ -62,6 +48,7 @@ suites:
             host:
               name: 'tincvpn3'
               address: "15.0.0.16"
+
   - name: avahi-zeroconf
     run_list:
       - recipe[tincvpn::default]

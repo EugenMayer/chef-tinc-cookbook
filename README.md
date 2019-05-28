@@ -39,7 +39,11 @@ having the same network deployed
 
 You can run the test using kitchen
 
-    chef exec kitchen converge
+    # vagrant basesed 
+    chef exec bundle exec kitchen test debian-9.9
+    
+    # dokken based
+    chef exec bundle exec kitchen test dokken-debian
     
 There are to test suites, `default` for testing anything with router mode and `switch` to ensure we can set the mode properly/
 
