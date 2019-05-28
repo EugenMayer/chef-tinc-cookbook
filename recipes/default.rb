@@ -1,6 +1,5 @@
 require 'openssl'
 
-
 package %w(tinc bridge-utils)
 # prepared for later multi-network per host deployments, not implemented yet
 
@@ -19,16 +18,22 @@ end
 # using chef-search, which do have the same networks, and create hosts files on this node for those with their public key
 # so they can actually connect to each other
 node['tincvpn']['networks'].each do |network_name, network|
-  raise "You need to set the host name for the tinc network #{network_name} in ['tincvpn']['networks'][#{network_name}]['network']['host']['name']" if network['host']['name'].nil?
-  raise 'You defined switch as you mode, but also defined subnets - this is now allowed by tinc' if !node['tincvpn']['networks'][network_name]['host']['subnets'].empty? && network['network']['mode'] == 'switch'
+  if !Array(network['host']['subnets']).empty? && network['network'] && network['network']['mode'] == 'switch'
+    raise 'You defined switch as your mode, but also defined subnets - this is now allowed by tinc'
+  end
 
   directory "/etc/tinc/#{network_name}"
   directory "/etc/tinc/#{network_name}/hosts"
-  local_host_name = node['tincvpn']['networks'][network_name]['host']['name']
-  local_host_path = "/etc/tinc/#{network_name}/hosts/#{local_host_name.gsub('-', '_')}"
+
+  if network['host']['name'] && network['host']['name'] != node['hostname']
+    Chef::Log.warn("Host name from tincvpn attributes (#{network['host']['name'].inspect}) differs with node's hostname (#{node['hostname'].inspect}).")
+  end
+
+  local_host_name = (network['host']['name'] || node['hostname']).gsub('-', '_')
+  local_host_path = "/etc/tinc/#{network_name}/hosts/#{local_host_name}"
   priv_key_location = "/etc/tinc/#{network_name}/rsa_key.priv"
 
-  avahi_zeroconf_enabled = node['tincvpn']['networks'][network_name]['host']['avahi_zeroconf_enabled']
+  avahi_zeroconf_enabled = network['host']['avahi_zeroconf_enabled']
 
   if avahi_zeroconf_enabled
     package %w(avahi-daemon avahi-utils avahi-autoipd)
@@ -52,14 +57,14 @@ node['tincvpn']['networks'].each do |network_name, network|
   # local host entry in hosts/
   # thats basically "us in the hosts file" - this is needed and mandaory
   host_addr = node['fqdn']
-  host_addr = node['tincvpn']['networks'][network_name]['host']['address'] unless node['tincvpn']['networks'][network_name]['host']['address'].nil?
+  host_addr = network['host']['address'] unless network['host']['address'].nil?
   template local_host_path do
     source 'host.erb'
     variables(
       pub_key: lazy { File.read("/etc/tinc/#{network_name}/rsa_key.pub") },
       address: host_addr,
-      port: node['tincvpn']['networks'][network_name]['network']['port'],
-      subnets: avahi_zeroconf_enabled ? [] : node['tincvpn']['networks'][network_name]['host']['subnets']
+      port: network['network'] && network['network']['port'] || 655,
+      subnets: avahi_zeroconf_enabled ? [] : network['host']['subnets']
     )
   end
 
@@ -77,8 +82,8 @@ node['tincvpn']['networks'].each do |network_name, network|
       source "tinc-#{action}.erb"
       mode '0755'
       variables(
-        tunnel_address: network['network']['tunneladdr'],
-        tunnel_netmask: network['network']['tunnelnetmask'],
+        tunnel_address: network['network'] && network['network']['tunneladdr'],
+        tunnel_netmask: network['network'] && network['network']['tunnelnetmask'],
         avahi_zeroconf_enabled: avahi_zeroconf_enabled
       )
       notifies :reload, 'service[tinc]', :delayed
@@ -94,27 +99,29 @@ node['tincvpn']['networks'].each do |network_name, network|
   peers = search(:node, "tincvpn_networks_#{network_name}_host_pubkey:*")
 
   peers.each do |peer|
-    host_name = peer['tincvpn']['networks'][network_name]['host']['name']
+    host_name = peer['hostname']
+
     # skip if the node found is actually then node we run on, since that host file has been written already above
     # and the values in the search would be outdated anyway
-    next if host_name == node['tincvpn']['networks'][network_name]['host']['name']
+    next if host_name == local_host_name
 
     # check which hosts this peers defined to connect to
-    defined_connect_to = node['tincvpn']['networks'][network_name]['host']['connect_to']
+    defined_connect_to = network['host']['connect_to']
 
     # filter hosts we did not want to connect to on this peer (if the whitelist exists)
-    next if !defined_connect_to.empty? && !defined_connect_to.include?(host_name)
+    next if !Array(defined_connect_to).empty? && !Array(defined_connect_to).include?(host_name)
 
     host_addr = peer['fqdn']
     host_addr = peer['tincvpn']['networks'][network_name]['host']['address'] unless peer['tincvpn']['networks'][network_name]['host']['address'].nil?
     host_pubkey = peer['tincvpn']['networks'][network_name]['host']['pubkey']
 
+    host_port = peer['tincvpn']['networks'][network_name]['network'] && peer['tincvpn']['networks'][network_name]['network']['port'] || 655
     template "/etc/tinc/#{network_name}/hosts/#{host_name.gsub('-', '_')}" do
       source 'host.erb'
       variables(
         address: host_addr,
         pub_key: host_pubkey,
-        port: peer['tincvpn']['networks'][network_name]['network']['port'],
+        port: host_port,
         subnets: avahi_zeroconf_enabled ? [] : peer['tincvpn']['networks'][network_name]['host']['subnets']
       )
       notifies :reload, 'service[tinc]', :delayed
@@ -130,11 +137,11 @@ node['tincvpn']['networks'].each do |network_name, network|
   template "/etc/tinc/#{network_name}/tinc.conf" do
     source 'tinc.conf.erb'
     variables(
-      name: network['host']['name'].gsub('-', '_'),
-      port: network['network']['port'],
-      interface: network['network']['interface'],
+      name: local_host_name,
+      port: network['network'] && network['network']['port'] || 655,
+      interface: network['network'] && network['network']['interface'],
       hosts_connect_to: hosts_connect_to,
-      mode: avahi_zeroconf_enabled ? 'switch' : network['network']['mode']
+      mode: avahi_zeroconf_enabled ? 'switch' : network['network'] && network['network']['mode']
     )
     notifies :reload, 'service[tinc]', :delayed
   end
@@ -156,4 +163,3 @@ template '/etc/tinc/nets.boot' do
   )
   notifies :restart, 'service[tinc]', :immediately
 end
-

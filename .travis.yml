@@ -13,9 +13,10 @@ services:
 env:
   - KITCHEN_YAML=.kitchen.dokken.yml
   - KITCHEN_YAML=.kitchen.docker.yml
+
 before_install: curl -L https://www.getchef.com/chef/install.sh | sudo bash -s -- -P chefdk
 
-install: chef exec bundle install --jobs=3 --retry=3 --without='vagrant'
+install: CHEF_LICENSE=accept chef exec bundle install --jobs=3 --retry=3 --without='vagrant'
 
 before_script: sudo iptables -L DOCKER || sudo iptables -N DOCKER
 

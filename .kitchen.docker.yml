@@ -4,20 +4,22 @@
 # currently this is not working but it is WIP
 
 driver:
-  name: docker
-  privileged: yes
-  run_command: /bin/systemd
-  provision_command:
-    - apt-get install systemd -y
-  disable_upstart: false
   cap_add:
     - SYS_ADMIN
+  disable_upstart: false
+  hostname: tincvpn3
+  name: docker
+  privileged: yes
+  provision_command:
+    - apt-get install systemd -y
+  run_command: /bin/systemd
   socket: unix:///var/run/docker.sock
+
 provisioner:
-  name: chef_zero
   always_update_cookbooks: true
-  nodes_path: test/fixtures/nodes
   chef_license: accept
+  name: chef_zero
+  nodes_path: test/fixtures/nodes
 
 verifier:
   name: inspec
@@ -29,48 +31,106 @@ platforms:
       image: debian:stretch
 
 suites:
-  - name: default
-    run_list:
-      - recipe[tincvpn::default]
+  - name: default-without-host-name
     attributes:
       tincvpn:
         networks:
           default:
             host:
-              name: 'tincvpn3'
               connect_to:
-                - 'tincnode1'
-                - 'tincnode2'
+                - tincnode1
+                - tincnode2
               subnets:
-                - '10.3.0.0/24'
-                - '172.3.0.0/16'
-  - name: switch
+                - 10.3.0.0/24
+                - 172.3.0.0/16
     run_list:
       - recipe[tincvpn::default]
+    verifier:
+      inspec_tests:
+        - test/integration/default
+  - name: switch-without-host-name
     attributes:
       tincvpn:
         networks:
           default:
+            host:
+              address: 15.0.0.16
             network:
-              mode: "switch"
-            host:
-              name: 'tincvpn3'
-              address: "15.0.0.16"
-
-  - name: avahi-zeroconf
+              mode: switch
     run_list:
       - recipe[tincvpn::default]
+    verifier:
+      inspec_tests:
+        - test/integration/switch
+  - name: avahi-zeroconf-without-host-name
     attributes:
       tincvpn:
         networks:
           default:
             host:
-              name: 'tincvpn3'
-              address: "15.0.0.16"
+              address: 15.0.0.16
               avahi_zeroconf_enabled: true
               subnets:
-                - '10.3.0.0/24'
-                - '172.3.0.0/16'
+                - 10.3.0.0/24
+                - 172.3.0.0/16
               connect_to:
-                - 'tincnode1'
-                - 'tincnode2'
+                - tincnode1
+                - tincnode2
+    run_list:
+      - recipe[tincvpn::default]
+    verifier:
+      inspec_tests:
+        - test/integration/avahi_zeroconf
+  - name: default-with-host-name
+    attributes:
+      tincvpn:
+        networks:
+          default:
+            host:
+              connect_to:
+                - tincnode1
+                - tincnode2
+              name: tincvpn3
+              subnets:
+                - 10.3.0.0/24
+                - 172.3.0.0/16
+    run_list:
+      - recipe[tincvpn::default]
+    verifier:
+      inspec_tests:
+        - test/integration/default
+  - name: switch-with-host-name
+    attributes:
+      tincvpn:
+        networks:
+          default:
+            host:
+              address: 15.0.0.16
+              name: tincvpn3
+            network:
+              mode: switch
+    run_list:
+      - recipe[tincvpn::default]
+    verifier:
+      inspec_tests:
+        - test/integration/switch
+  - name: avahi-zeroconf-with-host-name
+    attributes:
+      tincvpn:
+        networks:
+          default:
+            host:
+              address: 15.0.0.16
+              avahi_zeroconf_enabled: true
+              connect_to:
+                - tincnode1
+                - tincnode2
+              name: tincvpn3
+              subnets:
+                - 10.3.0.0/24
+                - 172.3.0.0/16
+    run_list:
+      - recipe[tincvpn::default]
+    verifier:
+      inspec_tests:
+        - test/integration/avahi_zeroconf
