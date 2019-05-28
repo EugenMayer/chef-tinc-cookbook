@@ -1,12 +1,14 @@
 ---
 # this is still very early - it seems to be significanly slower then `docken`
 # and yet seems to fail connecting using SSH when we start systemd
+# currently this is not working but it is WIP
 
 driver:
   name: docker
-  priviled: yes
+  privileged: yes
   # TODO: doing that, we cannot connect using SSH any longer
-  #  not using it, does lead to issues with our cookbook since we expect systemd
+  # TODO: .. not using it, does lead to issues with our cookbook since we expect systemd
+  # TODO: .. also see this issue https://github.com/test-kitchen/kitchen-docker/issues/40
   # run_command: /bin/systemd
   disable_upstart: false
   cap_add:
