@@ -40,18 +40,19 @@ having the same network deployed
 You can run the test using kitchen
 
     # vagrant basesed 
-    chef exec bundle exec kitchen test debian-9.9
+    chef exec bundle exec kitchen test
     
     # dokken based
-    chef exec bundle exec kitchen test dokken-debian
+    export KITCHEN_YAML=.kitchen.dokken.yml
+    chef exec bundle exec kitchen test
 
     # just the default suite
-    chef exec bundle exec kitchen test default-dokken-debian
-
+    export KITCHEN_YAML=.kitchen.dokken.yml
+    chef exec bundle exec kitchen test default
 
     # experimental, docker based ( not dokken )
     export KITCHEN_YAML=.kitchen.docker.yml
-    chef exec bundle exec kitchen test default-debian            
+    chef exec bundle exec kitchen test           
 There are to test suites, `default` for testing anything with router mode and `switch` to ensure we can set the mode properly/
 
 # Contributions

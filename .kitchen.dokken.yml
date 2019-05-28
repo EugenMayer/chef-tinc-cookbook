@@ -1,20 +1,32 @@
 ---
-verifier:
-  name: inspec
-
 driver:
-  name: vagrant
+  name: dokken
+  #image: debian:stretch # for now avoiding to use dokken/debian-9
+  privileged: true  # because Docker and SystemD/Upstart
 
 provisioner:
-  name: chef_zero
+  name: dokken
+  chef_license: accept
+  client_rb:
+    chef_license: accept
   always_update_cookbooks: true
   nodes_path: test/fixtures/nodes
-  product_version: 14.12
-  product_name: chef
-  chef_license: accept
+
+transport:
+  name: dokken
 
 platforms:
   - name: debian-9.9
+    hostname: tincvpn3 # Hostname is used in the tests so should be fixed
+    driver:
+      image: debian:stretch
+      pid_one_command: /bin/systemd
+      intermediate_instructions:
+        - RUN /usr/bin/apt-get update
+        - RUN apt-get install -y systemd
+
+verifier:
+  name: inspec
 
 suites:
   - name: default
