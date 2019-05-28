@@ -44,6 +44,9 @@ You can run the test using kitchen
     
     # dokken based
     chef exec bundle exec kitchen test dokken-debian
+
+    # just the default suite
+    chef exec bundle exec kitchen test default-dokken-debian
     
 There are to test suites, `default` for testing anything with router mode and `switch` to ensure we can set the mode properly/
 
