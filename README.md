@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/EugenMayer/chef-tinc-cookbook.svg?branch=master)](https://travis-ci.org/EugenMayer/chef-tinc-cookbook)
+
 # Description
 
 Installs [tinc vpn](https://www.tinc-vpn.org/) for meshed VPN networks.

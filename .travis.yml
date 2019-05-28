@@ -13,7 +13,6 @@ services:
 env:
   global:
     - KITCHEN_YAML=.kitchen.dokken.yml
-    - PLATFORM=dokken-debian
     - CHEF_LICENSE="accept-no-persist"
 
 before_install: curl -L https://www.getchef.com/chef/install.sh | sudo bash -s -- -P chefdk
@@ -25,4 +24,4 @@ before_script: sudo iptables -L DOCKER || sudo iptables -N DOCKER
 script:
   - chef exec bundle exec docker version
   - chef exec bundle exec kitchen --version
-  - time chef exec bundle exec kitchen test ${PLATFORM} -l debug
+  - time chef exec bundle exec kitchen test -l debug
