@@ -19,20 +19,17 @@ platforms:
   - name: dokken-debian
     driver:
       name: dokken
-      # Hostname is used in the tests so should be fixed
-      hostname: tincvpn3
-      # pid_one_command: /bin/systemd
-      image: dokken/debian-9
-      # image: debian:stretch
+      privileged: true  # because Docker and SystemD/Upstart
+      hostname: tincvpn3 # Hostname is used in the tests so should be fixed
+      pid_one_command: /bin/systemd
+      image: debian:stretch # for now avoiding to use dokken/debian-9
       intermediate_instructions:
-        # ensure the apt-index is not deleted
-        - RUN rm /etc/apt/apt.conf.d/docker-clean
+        - RUN /usr/bin/apt-get update
     provisioner:
       name: dokken
       chef_license: accept
       always_update_cookbooks: true
       nodes_path: test/fixtures/nodes
-
     transport:
       name: dokken
 
