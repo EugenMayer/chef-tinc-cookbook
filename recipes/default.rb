@@ -26,7 +26,10 @@ node['tincvpn']['networks'].each do |network_name, network|
   directory "/etc/tinc/#{network_name}/hosts"
 
   if network['host']['name'] && network['host']['name'] != node['hostname']
-    Chef::Log.warn("Host name from tincvpn attributes (#{network['host']['name'].inspect}) differs with node's hostname (#{node['hostname'].inspect}).")
+    Chef::Log.warn(
+      "Host name from tincvpn attributes (#{network['host']['name'].inspect}) " \
+      "differs with node's hostname (#{node['hostname'].inspect})."
+    )
   end
 
   local_host_name = (network['host']['name'] || node['hostname']).gsub('-', '_')
@@ -44,9 +47,11 @@ node['tincvpn']['networks'].each do |network_name, network|
   end
 
 
-  # we use the tinc tool to generate the priv and public key, since openssl with public key is kind of complicated with chef
-  # we remove the tinc.conf before we generate, since otherwise the public key will not be saved in /etc/tinc/#{network_name}/rsa_key.pub
-  # but rather in the hosts/<localname> file - and we do not want that for simplicity of extraction
+  # we use the tinc tool to generate the priv and public key, since openssl with
+  # public key is kind of complicated with chef we remove the tinc.conf before
+  # we generate, since otherwise the public key will not be saved in
+  # /etc/tinc/#{network_name}/rsa_key.pub but rather in the hosts/<localname>
+  # file - and we do not want that for simplicity of extraction
   execute "generate-#{network_name}-keys" do
     command "rm -f #{local_host_path} && rm -f /etc/tinc/#{network_name}/tinc.conf && (yes | tincd  -n #{network_name} -K4096)"
     creates priv_key_location
@@ -68,7 +73,8 @@ node['tincvpn']['networks'].each do |network_name, network|
     )
   end
 
-  # a ruby block is used to ensure order of execution - so in the case "generate-#{network_name}-keys" needs to be run first
+  # a ruby block is used to ensure order of execution - so in the case
+  # "generate-#{network_name}-keys" needs to be run first
   ruby_block "publish-public-key-#{network_name}" do
     block do
       node.normal['tincvpn']['networks'][network_name]['host']['pubkey'] = File.read("/etc/tinc/#{network_name}/rsa_key.pub")
@@ -148,9 +154,14 @@ node['tincvpn']['networks'].each do |network_name, network|
 
   # we need this for systemd configuration starting from debian-stretch
   # /etc/tinc/nets.boot are no longer working / is ignored, see https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=841052#27
-  if node['lsb']['codename'] == 'stretch'
-    service "tinc@#{network_name}" do
-    action [ :enable, :start ]
+  if node['platform'] == 'debian'
+    version = shell_out('cat /etc/os-release | grep "VERSION="').stdout
+    codename = version.scan(/\d+\s\(([a-z]+)\)/).flatten.first
+
+    if codename == 'stretch'
+      service "tinc@#{network_name}" do
+        action [ :enable, :start ]
+      end
     end
   end
 end
