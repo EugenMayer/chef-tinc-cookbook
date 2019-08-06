@@ -1,0 +1,24 @@
+{
+  "name": "tinccustomnode1.tincvpn.vagrant",
+  "normal": {
+    "tincvpn": {
+      "networks": {
+        "custom": {
+          "network": {
+            "port": 651
+          },
+          "host": {
+            "name": "tinccustomnode1",
+            "address": "15.0.0.1",
+            "subnets": [ "10.1.0.0/24", "172.1.0.0/16"],
+            "pubkey": "test-pubkey1"
+          }
+        }
+      }
+    }
+  },
+  "automatic": {
+    "hostname": "tinccustomnode1",
+    "fqdn": "tinccustomnode1.tincvpn.vagrant"
+  }
+}

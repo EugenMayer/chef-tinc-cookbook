@@ -45,6 +45,22 @@ suites:
     verifier:
       inspec_tests:
         - test/integration/default
+  - name: custom-network-without-host-name
+    attributes:
+      tincvpn:
+        networks:
+          custom:
+            host:
+              connect_to:
+                - tinccustomnode1
+              subnets:
+                - 10.3.0.0/24
+                - 172.3.0.0/16
+    run_list:
+      - recipe[tincvpn::default]
+    verifier:
+      inspec_tests:
+        - test/integration/custom_network
   - name: switch-without-host-name
     attributes:
       tincvpn:
