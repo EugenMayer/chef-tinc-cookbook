@@ -14,7 +14,7 @@ default[:tincvpn][:networks]['default'][:host][:name] = nil
 default[:tincvpn][:networks]['default'][:host][:connect_to] = []
 # define the subnets you want to share of your networks, like you LAN or whatever
 default[:tincvpn][:networks]['default'][:host][:subnets] = []
-# will default to fqdn when not set
+# will default to the node ipaddress when not set
 default[:tincvpn][:networks]['default'][:host][:address] = nil
 
 # use zeroconf with automatic ip and dns management

@@ -94,8 +94,8 @@ node['tincvpn']['networks'].each do |network_name, network|
   # local host entry in hosts/
   # thats basically "us in the hosts file" - this is needed and mandaory
   # Takes the host address from the attributes if defined, otherwise takes
-  # the automatic fqdn attribute (ohai)
-  host_addr = network['host']['address'] || node['fqdn']
+  # the automatic ipaddress attribute (ohai)
+  host_addr = network['host']['address'] || node['ipaddress']
   template local_host_path do
     source 'host.erb'
     variables(
@@ -154,7 +154,7 @@ node['tincvpn']['networks'].each do |network_name, network|
     # (if the whitelist exists)
     next if !Array(defined_connect_to).empty? && !Array(defined_connect_to).include?(host_name)
 
-    host_addr = peer['fqdn']
+    host_addr = peer['ipaddress']
     host_addr = peer['tincvpn']['networks'][network_name]['host']['address'] unless peer['tincvpn']['networks'][network_name]['host']['address'].nil?
     host_pubkey = peer['tincvpn']['networks'][network_name]['host']['pubkey']
 
