@@ -1,63 +1,139 @@
 ---
+driver:
+  name: vagrant
+  vm_hostname: tincvpn3
+
+provisioner:
+  always_update_cookbooks: true
+  chef_license: accept
+  name: chef_zero
+  nodes_path: test/fixtures/nodes
+  product_name: chef
+  product_version: 14.12
+
 verifier:
   name: inspec
 
-driver:
-  name: vagrant
-
-provisioner:
-  name: chef_zero
-  always_update_cookbooks: true
-  nodes_path: test/fixtures/nodes
-  product_version: 14.12
-  product_name: chef
-  chef_license: accept
-
 platforms:
-  - name: debian-9.9
+  - name: debian-9.6
 
 suites:
-  - name: default
-    run_list:
-      - recipe[tincvpn::default]
+  - name: default-without-host-name
     attributes:
       tincvpn:
         networks:
           default:
             host:
-              name: 'tincvpn3'
               connect_to:
-                - 'tincnode1'
-                - 'tincnode2'
+                - tincnode1
+                - tincnode2
               subnets:
-                - '10.3.0.0/24'
-                - '172.3.0.0/16'
-  - name: switch
+                - 10.3.0.0/24
+                - 172.3.0.0/16
     run_list:
       - recipe[tincvpn::default]
+    verifier:
+      inspec_tests:
+        - test/integration/default
+  - name: custom-network-without-host-name
+    attributes:
+      tincvpn:
+        networks:
+          custom:
+            host:
+              connect_to:
+                - tinccustomnode1
+              subnets:
+                - 10.3.0.0/24
+                - 172.3.0.0/16
+    run_list:
+      - recipe[tincvpn::default]
+    verifier:
+      inspec_tests:
+        - test/integration/custom_network
+  - name: switch-without-host-name
     attributes:
       tincvpn:
         networks:
           default:
+            host:
+              address: 15.0.0.16
             network:
-              mode: "switch"
-            host:
-              name: 'tincvpn3'
-              address: "15.0.0.16"
-  - name: avahi-zeroconf
+              mode: switch
     run_list:
       - recipe[tincvpn::default]
+    verifier:
+      inspec_tests:
+        - test/integration/switch
+  - name: avahi-zeroconf-without-host-name
     attributes:
       tincvpn:
         networks:
           default:
             host:
-              name: 'tincvpn3'
-              address: "15.0.0.16"
+              address: 15.0.0.16
               avahi_zeroconf_enabled: true
-              subnets:
-                - '10.3.0.0/24'
-                - '172.3.0.0/16'
               connect_to:
-                - 'tincnode1'
-                - 'tincnode2'
+                - tincnode1
+                - tincnode2
+              subnets:
+                - 10.3.0.0/24
+                - 172.3.0.0/16
+    run_list:
+      - recipe[tincvpn::default]
+    verifier:
+      inspec_tests:
+        - test/integration/avahi_zeroconf
+  - name: default-with-host-name
+    attributes:
+      tincvpn:
+        networks:
+          default:
+            host:
+              connect_to:
+                - tincnode1
+                - tincnode2
+              name: tincvpn3
+              subnets:
+                - 10.3.0.0/24
+                - 172.3.0.0/16
+    run_list:
+      - recipe[tincvpn::default]
+    verifier:
+      inspec_tests:
+        - test/integration/default
+  - name: switch-with-host-name
+    attributes:
+      tincvpn:
+        networks:
+          default:
+            host:
+              address: 15.0.0.16
+              name: tincvpn3
+            network:
+              mode: switch
+    run_list:
+      - recipe[tincvpn::default]
+    verifier:
+      inspec_tests:
+        - test/integration/switch
+  - name: avahi-zeroconf-with-host-name
+    attributes:
+      tincvpn:
+        networks:
+          default:
+            host:
+              address: 15.0.0.16
+              avahi_zeroconf_enabled: true
+              connect_to:
+                - tincnode1
+                - tincnode2
+              name: tincvpn3
+              subnets:
+                - 10.3.0.0/24
+                - 172.3.0.0/16
+    run_list:
+      - recipe[tincvpn::default]
+    verifier:
+      inspec_tests:
+        - test/integration/avahi_zeroconf
