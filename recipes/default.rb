@@ -9,6 +9,18 @@ service 'tinc' do
   action [ :enable, :start ]
 end
 
+# As this cookbook is updating the node's network (adding a new network
+# interface), in order to allow other coobooks, running after this one, to know
+# about this new network interface, the following `ohai` block will refresh its
+# `network` part on notifing it.
+#
+# (This means that this block is not executed immediately but when executing the
+# following: `notifies :reload, 'ohai[reload_network]', :immediately`)
+ohai 'reload_network' do
+  action :reload
+  plugin 'network'
+end
+
 # We want to override the options passed to `tincd` and include the --logfile
 # option
 template '/etc/default/tinc' do
@@ -210,4 +222,5 @@ template '/etc/tinc/nets.boot' do
     networks: node['tincvpn']['networks'].keys
   )
   notifies :restart, 'service[tinc]', :immediately
+  notifies :reload, 'ohai[reload_network]', :immediately
 end
