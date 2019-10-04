@@ -179,7 +179,7 @@ node['tincvpn']['networks'].each do |network_name, network|
         port: host_port,
         subnets: avahi_zeroconf_enabled ? [] : peer['tincvpn']['networks'][network_name]['host']['subnets']
       )
-      notifies :reload, 'service[tinc]', :delayed
+      notifies :restart, 'service[tinc]', :delayed
     end
 
     # add all hosts to our connectTo list, except ourselfs
