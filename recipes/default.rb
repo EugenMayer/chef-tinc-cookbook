@@ -99,7 +99,6 @@ node['tincvpn']['networks'].each do |network_name, network|
   execute "generate-#{network_name}-keys" do
     command "rm -f #{local_host_path} && rm -f /etc/tinc/#{network_name}/tinc.conf && (yes | tincd  -n #{network_name} -K4096)"
     creates priv_key_location
-    notifies :run, "ruby_block[publish-public-key-#{network_name}]", :immediately
     not_if { File.exist?(priv_key_location) }
   end
 
@@ -121,10 +120,10 @@ node['tincvpn']['networks'].each do |network_name, network|
   # a ruby block is used to ensure order of execution - so in the case
   # "generate-#{network_name}-keys" needs to be run first
   ruby_block "publish-public-key-#{network_name}" do
+    action :run
     block do
       node.normal['tincvpn']['networks'][network_name]['host']['pubkey'] = File.read("/etc/tinc/#{network_name}/rsa_key.pub")
     end
-    action :nothing
   end
 
   # tinc up/down - mainly defining our tunnel network and our tunnel network
