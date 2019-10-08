@@ -88,6 +88,14 @@ node['tincvpn']['networks'].each do |network_name, network|
     service 'avahi-daemon' do
       action [ :enable, :start ]
     end
+
+    if network_name.size >= 15
+      Chef::Log.warn "The network name #{network_name} is too long " \
+                     '(Avahi has a 15 characters limitation) which will ' \
+                     'surely makes Avahi not starting correctly. ' \
+                     'Please concider reducing the network name length to ' \
+                     '15 characters at most.'
+    end
   end
 
   # we use the tinc tool to generate the priv and public key, since openssl
