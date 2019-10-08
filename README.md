@@ -37,6 +37,16 @@ See [tincvpn.rb](https://github.com/EugenMayer/chef-tinc-cookbook/blob/master/at
 Installs tinc and configure all your hosts and networks. Hosts are actually looked up using a node search, picking all nodes
 having the same network deployed
 
+
+# Release
+
+```bash
+bundle install --binstubs --without=development vagrant docker dokken integrration
+./bin/stove login --username <user>--key ~/.ssh/key.pem
+# edit metadata.rb and release
+./bin/stove 
+```
+
 # Tests
 
 You can run the test using kitchen

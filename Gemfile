@@ -2,10 +2,12 @@
 
 source 'http://rubygems.org'
 
-gem 'knife-cookbook-doc', '>=0.13.0'
+gem 'stove'
 
-gem 'berkshelf'
-
+group :development do
+  gem 'knife-cookbook-doc', '>=0.13.0'
+  gem 'berkshelf'
+end
 group :integration do
   gem 'kitchen-inspec'
   gem 'test-kitchen'
