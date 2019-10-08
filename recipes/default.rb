@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'ipaddress'
 require 'openssl'
 
 package %w(tinc bridge-utils)
@@ -19,6 +20,72 @@ end
 ohai 'reload_network' do
   action :reload
   plugin 'network'
+end
+
+# Updates the network tunneladdr and tunnelnetmask node attributes from iprange
+# attribute if tunneladdr and tunnelnetmask aren't already set.
+Array(node['tincvpn']['networks']).detect do |network_name, network|
+  # Ignore all networks where the iprange attribute is not defined
+  next unless network['network'] && network['network']['iprange']
+
+  # Do not overrides the tunneladdr and tunnelnetmask attributes if already
+  # defined.
+  if network['network']['tunneladdr'] || network['network']['tunnelnetmask']
+    next
+  end
+
+  # Parse the given iprange attribute. Could raise an ArgumentError in the case
+  # the given value is not a valid IP Address
+  ip_addresses = IPAddress(network['network']['iprange']).hosts
+  # Also load all the network's peers
+  peers = search(:node, "tincvpn_networks_#{network_name}_host_pubkey:*")
+
+  unique_ip_address = nil
+  iterations = 0
+
+  # Search for a free IP address
+  while unique_ip_address.to_s == ''
+    already_in_use = false
+    iterations += 1
+
+    # Just in case of ...
+    if iterations >= 200
+      Chef::Log.warn 'Unable to find a free IP address after 200 iterations.'
+      break
+    end
+
+    # Taking randomly an IP address from the range
+    new_ip_address = nil
+    until new_ip_address
+      new_ip_address = ip_addresses[rand(0..ip_addresses.size - 1)]
+    end
+
+    # Checking if that IP address is free
+    peers.each do |peer|
+      peer_network = peer['tincvpn']['networks'][network_name]['network']
+      if peer_network['tunneladdr'] == new_ip_address
+        already_in_use = true
+        break
+      end
+    end
+
+    # Leave the loop
+    unique_ip_address = new_ip_address unless already_in_use
+  end
+
+  # If a free IP address has been found, update the node network's tunneladdr
+  # and tunnelnetmask attributes so that they'll be used later in this recipe.
+  # They'll be saved in the node's JSON file so that on the next converge this
+  # block will be ignored and the IP address will remain the same.
+  if unique_ip_address
+    node.normal['tincvpn']['networks'][network_name]['network']['tunneladdr'] = unique_ip_address.to_s
+    node.normal['tincvpn']['networks'][network_name]['network']['tunnelnetmask'] = unique_ip_address.netmask
+    subnets = []
+    if node['tincvpn']['networks'][network_name]['host']
+      subnets = Array(node['tincvpn']['networks'][network_name]['host']['subnets'])
+    end
+    node.normal['tincvpn']['networks'][network_name]['host']['subnets'] = subnets + ["#{unique_ip_address}/32"]
+  end
 end
 
 # We want to override the options passed to `tincd` and include the --logfile

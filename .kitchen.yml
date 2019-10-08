@@ -30,6 +30,9 @@ suites:
               subnets:
                 - 10.3.0.0/24
                 - 172.3.0.0/16
+            network:
+              tunneladdr: 172.25.0.1
+              tunnelnetmask: 255.255.255.0
     run_list:
       - recipe[tincvpn::default]
     verifier:
@@ -97,6 +100,9 @@ suites:
               subnets:
                 - 10.3.0.0/24
                 - 172.3.0.0/16
+            network:
+              tunneladdr: 172.25.0.1
+              tunnelnetmask: 255.255.255.0
     run_list:
       - recipe[tincvpn::default]
     verifier:
@@ -137,3 +143,15 @@ suites:
     verifier:
       inspec_tests:
         - test/integration/avahi_zeroconf
+  - name: default-with-ip-range
+    attributes:
+      tincvpn:
+        networks:
+          default:
+            network:
+              iprange: 10.0.0.0/24
+    run_list:
+      - recipe[tincvpn::default]
+    verifier:
+      inspec_tests:
+        - test/integration/iprange
