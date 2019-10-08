@@ -66,6 +66,9 @@ Just use the [issue queue](https://github.com/EugenMayer/chef-tinc-cookbook/issu
 
 # License and Maintainer
 
-Maintainer:: Eugen Mayer
+Maintainer:: 
+
+- [Zedux](https://github.com/zedtux)
+- [Eugen Mayer](https://github.com/EugenMayer)
 
 License:: Apache 2.0
