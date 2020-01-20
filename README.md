@@ -41,7 +41,7 @@ having the same network deployed
 # Release
 
 ```bash
-bundle install --binstubs --without=development vagrant docker dokken integrration
+bundle install --binstubs --without='development vagrant docker dokken integration' 
 ./bin/stove login --username <user>--key ~/.ssh/key.pem
 # edit metadata.rb and release
 ./bin/stove 
