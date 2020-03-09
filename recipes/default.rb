@@ -22,15 +22,41 @@ ohai 'reload_network' do
   plugin 'network'
 end
 
+# Environment attributes support
+env_attributes = (
+  node.environment == '_default' ? node : node[node.environment]
+)['tincvpn']
+Chef::Log.warn "env_attributes: #{env_attributes.inspect}"
+
 # Updates the network tunneladdr and tunnelnetmask node attributes from iprange
 # attribute if tunneladdr and tunnelnetmask aren't already set.
-Array(node['tincvpn']['networks']).detect do |network_name, network|
+Chef::Log.warn "AutoIP ..."
+Array(env_attributes['networks']).detect do |network_name, network|
+  Chef::Log.warn "Checking network #{network_name} ..."
   # Ignore all networks where the iprange attribute is not defined
-  next unless network['network'] && network['network']['iprange']
+  unless network['network'] && network['network']['iprange']
+    Chef::Log.warn "Network #{network_name} doesn't have defined iprange, skip it."
+
+    next
+  end
+
+  # Load the cookbook data from the node's JSON file, from the chef repo.
+  # See https://docs.chef.io/attributes/#attribute-persistence to know more
+  # about `node.normal`.
+  local_network = node.normal['tincvpn']['networks'][network_name]
+
+  Chef::Log.warn "local_network: #{local_network.inspect}"
+  Chef::Log.warn "local_network['network']: #{local_network['network'].inspect}"
+  Chef::Log.warn "local_network['network']['tunneladdr']: #{local_network['network']['tunneladdr'].inspect}"
+  Chef::Log.warn "local_network['network']['tunnelnetmask']: #{local_network['network']['tunnelnetmask'].inspect}"
 
   # Do not overrides the tunneladdr and tunnelnetmask attributes if already
-  # defined.
-  if network['network']['tunneladdr'] || network['network']['tunnelnetmask']
+  # defined locally on the node.
+  if local_network['network']['tunneladdr'].empty? ||
+     local_network['network']['tunnelnetmask'].empty?
+    Chef::Log.warn "Network #{network_name} has no tunneladdr, nor tunnelnetmask, generating a new IP address ..."
+  else
+    Chef::Log.warn "Network #{network_name} already have a tunneladdr and/or tunnelnetmask, skip it."
     next
   end
 
@@ -38,7 +64,9 @@ Array(node['tincvpn']['networks']).detect do |network_name, network|
   # the given value is not a valid IP Address
   ip_addresses = IPAddress(network['network']['iprange']).hosts
   # Also load all the network's peers
-  peers = search(:node, "tincvpn_networks_#{network_name}_host_pubkey:*")
+  peers = search(:node, "tincvpn_networks_#{network_name}_host_pubkey:* " \
+                        "AND chef_environment:#{node.environment}")
+  Chef::Log.warn "#{peers.size} nodes found from the #{node.environment} environment."
 
   unique_ip_address = nil
   iterations = 0
@@ -73,18 +101,26 @@ Array(node['tincvpn']['networks']).detect do |network_name, network|
     unique_ip_address = new_ip_address unless already_in_use
   end
 
+  Chef::Log.warn "Generated free IP address: #{unique_ip_address}"
+
   # If a free IP address has been found, update the node network's tunneladdr
   # and tunnelnetmask attributes so that they'll be used later in this recipe.
   # They'll be saved in the node's JSON file so that on the next converge this
   # block will be ignored and the IP address will remain the same.
+  #
+  # Using `node.normal` stores the data in a JSON file with then node's name
+  # in your chef repository.
   if unique_ip_address
+    Chef::Log.warn "Saving IP address #{unique_ip_address} and mask #{unique_ip_address.netmask.inspect} to the #{network_name} data ..."
+    Chef::Log.warn "BEFORE node.normal['tincvpn']['networks'][network_name]: #{node.normal['tincvpn']['networks'][network_name].inspect}"
     node.normal['tincvpn']['networks'][network_name]['network']['tunneladdr'] = unique_ip_address.to_s
     node.normal['tincvpn']['networks'][network_name]['network']['tunnelnetmask'] = unique_ip_address.netmask
     subnets = []
-    if node['tincvpn']['networks'][network_name]['host']
-      subnets = Array(node['tincvpn']['networks'][network_name]['host']['subnets'])
+    if env_attributes['networks'][network_name]['host']
+      subnets = Array(env_attributes['networks'][network_name]['host']['subnets'])
     end
     node.normal['tincvpn']['networks'][network_name]['host']['subnets'] = subnets + ["#{unique_ip_address}/32"]
+    Chef::Log.warn "AFTER node.normal['tincvpn']['networks'][network_name]: #{node.normal['tincvpn']['networks'][network_name].inspect}"
   end
 end
 
@@ -99,8 +135,9 @@ end
 # Avoids creating the `default` network from default attributes when using a
 # custom network instead.
 # The "default" network alone should not be deleted at all.
-if Array(node['tincvpn']['networks']).size > 1
-  default_network = node['tincvpn']['networks']['default']
+if Array(env_attributes['networks']).size > 1
+  Chef::Log.warn "Clearing default network if needed ..."
+  default_network = env_attributes['networks']['default']
   if default_network # If there is a "default" network in the attributes
     avahi_enabled = default_network['host'] && \
                     default_network['host']['avahi_zeroconf_enabled'] \
@@ -121,7 +158,9 @@ end
 # chef-search, which do have the same networks, and create hosts files
 # on this node for those with their public key so they can actually connect
 # to each other
-node['tincvpn']['networks'].each do |network_name, network|
+env_attributes['networks'].each do |network_name, network|
+  Chef::Log.warn "Processing network #{network_name} with config: #{network.inspect} ..."
+
   network_mode = network['network'] && network['network']['mode']
   network_mode ||= 'router' # Default tinc mode value
 
@@ -203,13 +242,20 @@ node['tincvpn']['networks'].each do |network_name, network|
 
   # tinc up/down - mainly defining our tunnel network and our tunnel network
   # address
+  node_network = node.normal['tincvpn']['networks'][network_name]
+  if node_network && node_network['network']
+    tunnel_address = node_network['network']['tunneladdr']
+    tunnel_netmask = node_network['network']['tunnelnetmask']
+  end
+
   %w[up down].each do |action|
+    Chef::Log.warn "Building action file tinc-#{action} ..."
     template "/etc/tinc/#{network_name}/tinc-#{action}" do
       source "tinc-#{action}.erb"
       mode '0755'
       variables(
-        tunnel_address: network['network'] && network['network']['tunneladdr'],
-        tunnel_netmask: network['network'] && network['network']['tunnelnetmask'],
+        tunnel_address: tunnel_address,
+        tunnel_netmask: tunnel_netmask,
         avahi_zeroconf_enabled: avahi_zeroconf_enabled
       )
       notifies :reload, 'service[tinc]', :delayed
@@ -222,19 +268,28 @@ node['tincvpn']['networks'].each do |network_name, network|
   ##########################################################################
   # all the remote hosts
   hosts_connect_to = []
+  query = "tincvpn_networks_#{network_name}_host_pubkey:* " \
+          "AND chef_environment:#{node.environment}"
   # any other node having a public key and joined the same network
-  peers = search(:node, "tincvpn_networks_#{network_name}_host_pubkey:*")
+  Chef::Log.warn "Searching query: #{query.inspect}"
+  peers = search(:node, query)
+  Chef::Log.warn "#{peers.size} nodes found. (#{peers.map(&:name).sort.join(', ')})"
 
+  Chef::Log.warn "local hostname: #{local_host_name.inspect}"
   peers.each do |peer|
     host_name = peer['hostname']
+    Chef::Log.warn "Current hostname: #{host_name.inspect}"
 
     # Skip if the node found is actually the node we run on,
     # since that host file has been written already above
     # and the values in the search would be outdated anyway
     next if host_name == local_host_name
 
+    Chef::Log.warn "Not this node's hostname, continuing ..."
+
     # check which hosts this peers defined to connect to
     defined_connect_to = network['host']['connect_to']
+    Chef::Log.warn "That hostname is defined to be connected to #{defined_connect_to.inspect}"
 
     # Filter hosts we did not want to connect to on this peer
     # (if the whitelist exists)
@@ -256,9 +311,13 @@ node['tincvpn']['networks'].each do |network_name, network|
       notifies :restart, 'service[tinc]', :delayed
     end
 
+    Chef::Log.warn "Adding host_name (#{host_name.gsub('-', '_').inspect}) to hosts_connect_to ..."
+
     # add all hosts to our connectTo list, except ourselfs
     hosts_connect_to << host_name.gsub('-', '_')
   end
+
+  Chef::Log.warn "hosts_connect_to: #{hosts_connect_to.inspect}"
 
   ##########################################################################
   # deploy our node network configuration
