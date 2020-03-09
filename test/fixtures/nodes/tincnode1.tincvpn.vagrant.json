@@ -10,7 +10,7 @@
           "host": {
             "name": "tincnode1",
             "address": "15.0.0.1",
-            "subnets": [ "10.1.0.0/24", "172.1.0.0/16"],
+            "subnets": ["10.1.0.0/24", "172.1.0.0/16"],
             "pubkey": "test-pubkey1"
           }
         }

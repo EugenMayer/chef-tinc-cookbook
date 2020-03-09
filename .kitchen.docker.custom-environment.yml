@@ -1,0 +1,68 @@
+---
+# this is still very early - it seems to be significanly slower then `docken`
+# and yet seems to fail connecting using SSH when we start systemd
+# currently this is not working but it is WIP
+#
+# The aim of this file is to test the Tinc cookbook using a Chef environment
+# or Chef Policy group.
+# This means all the suites, running from this file, are running with
+# the `chef_environment` being "kitchen" (while with the other kitchen files
+# `chef_environment` is "_default")
+
+driver:
+  cap_add:
+    - SYS_ADMIN
+  disable_upstart: false
+  hostname: tincvpn3
+  name: docker
+  privileged: yes
+  provision_command:
+    - apt-get install systemd -y
+  run_command: /bin/systemd
+  socket: unix:///var/run/docker.sock
+
+provisioner:
+  always_update_cookbooks: true
+  chef_license: accept
+  client_rb:
+    environment: kitchen
+  environments_path: test/fixtures/environments
+  log_level: warn # debug, info, warn, error, and fatal
+  name: chef_zero
+  nodes_path: test/fixtures/kitchen_env_nodes
+
+verifier:
+  name: inspec
+
+platforms:
+  - name: debian-9
+    driver_config:
+      image: debian:stretch
+  - name: debian-10
+    driver_config:
+      image: debian:buster
+
+suites:
+  - name: two-env-with-different-config
+    attributes:
+      # The expected config to be applied
+      kitchen:
+        tincvpn:
+          networks:
+            infravpn:
+              network:
+                iprange: 10.0.0.0/24
+                mode: switch
+      # Another config that should not be applied at all
+      the_other_env:
+        tincvpn:
+          networks:
+            infravpn:
+              network:
+                iprange: 10.0.1.0/24
+                mode: switch
+    run_list:
+      - recipe[tincvpn::default]
+    verifier:
+      inspec_tests:
+        - test/integration/custom_environments/two_env_with_different_config

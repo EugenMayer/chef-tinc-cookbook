@@ -1,0 +1,26 @@
+{
+  "name": "infranode1.tincvpn.vagrant",
+  "chef_environment": "kitchen",
+  "normal": {
+    "tincvpn": {
+      "networks": {
+        "infravpn": {
+          "network": {
+            "tunneladdr": "10.0.0.29",
+            "tunnelnetmask": "255.255.255.0"
+          },
+          "host": {
+            "subnets": [
+              "10.0.0.29/32"
+            ],
+            "pubkey": "\ntest-pubkey1\n"
+          }
+        }
+      }
+    }
+  },
+  "automatic": {
+    "hostname": "infranode1",
+    "fqdn": "infranode1.tincvpn.vagrant"
+  }
+}
