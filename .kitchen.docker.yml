@@ -26,9 +26,12 @@ verifier:
 
 platforms:
   # default driver, vagrant
-  - name: debian
+  - name: debian-9
     driver_config:
       image: debian:stretch
+  - name: debian-10
+    driver_config:
+      image: debian:buster
 
 suites:
   - name: default-without-host-name
