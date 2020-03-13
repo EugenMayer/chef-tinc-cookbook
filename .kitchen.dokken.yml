@@ -2,15 +2,8 @@
 driver:
   hostname: tincvpn3 # Hostname is used in the tests so should be fixed
   name: dokken
-  privileged: true  # because Docker and SystemD/Upstart
-  cap_add:
-    - SYS_ADMIN
 
 provisioner:
-  always_update_cookbooks: true
-  chef_license: accept
-  client_rb:
-    chef_license: accept
   name: dokken
   nodes_path: test/fixtures/nodes
 
@@ -20,18 +13,14 @@ transport:
 platforms:
   - name: debian-9.9
     driver:
-      image: debian:stretch
-      intermediate_instructions:
-        - RUN /usr/bin/apt-get update
-        - RUN apt-get install -y systemd net-tools
+      image: dokken/debian-9
       pid_one_command: /bin/systemd
+      privileged: true
   - name: debian-10
     driver:
-      image: debian:buster
-      intermediate_instructions:
-        - RUN /usr/bin/apt-get update
-        - RUN apt-get install -y systemd
+      image: dokken/debian-10
       pid_one_command: /bin/systemd
+      privileged: true
 
 verifier:
   name: inspec
