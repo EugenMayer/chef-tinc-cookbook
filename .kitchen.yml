@@ -15,7 +15,8 @@ verifier:
   name: inspec
 
 platforms:
-  - name: debian-9.6
+  - name: debian-9.11
+  - name: debian-10.2
 
 suites:
   - name: default-without-host-name
