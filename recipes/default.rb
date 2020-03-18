@@ -164,7 +164,7 @@ env_attributes['networks'].each do |network_name, network|
   network_mode = network['network'] && network['network']['mode']
   network_mode ||= 'router' # Default tinc mode value
 
-  network_host_subnets = network['host'] && Array(network['host']['subnets'])
+  network_host_subnets = Array(network['host'] && network['host']['subnets'])
 
   if !network_host_subnets.empty? && network_mode == 'switch'
     raise 'You defined switch as your mode, but also defined subnets - ' \
