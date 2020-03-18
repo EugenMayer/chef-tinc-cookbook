@@ -164,7 +164,9 @@ env_attributes['networks'].each do |network_name, network|
   network_mode = network['network'] && network['network']['mode']
   network_mode ||= 'router' # Default tinc mode value
 
-  if !Array(network['host']['subnets']).empty? && network_mode == 'switch'
+  network_host_subnets = network['host'] && Array(network['host']['subnets'])
+
+  if !network_host_subnets.empty? && network_mode == 'switch'
     raise 'You defined switch as your mode, but also defined subnets - ' \
           'this is now allowed by tinc'
   end
@@ -172,7 +174,8 @@ env_attributes['networks'].each do |network_name, network|
   directory "/etc/tinc/#{network_name}"
   directory "/etc/tinc/#{network_name}/hosts"
 
-  if network['host']['name'] && network['host']['name'] != node['hostname']
+  if network['host'] && network['host']['name'] &&
+     network['host']['name'] != node['hostname']
     Chef::Log.warn(
       "The hostname #{network['host']['name'].inspect} from tincvpn " \
       "attributes differs with node's hostname " \
@@ -180,13 +183,14 @@ env_attributes['networks'].each do |network_name, network|
     )
   end
 
-  local_host_name = network['host']['name'] || node['hostname']
+  local_host_name = (network['host'] && network['host']['name'])
+  local_host_name ||= node['hostname']
   local_host_name = local_host_name.gsub('-', '_')
 
   local_host_path = "/etc/tinc/#{network_name}/hosts/#{local_host_name}"
   priv_key_location = "/etc/tinc/#{network_name}/rsa_key.priv"
 
-  avahi_zeroconf_enabled = network['host']['avahi_zeroconf_enabled']
+  avahi_zeroconf_enabled = network['host'] && network['host']['avahi_zeroconf_enabled']
 
   if avahi_zeroconf_enabled
     package %w(avahi-daemon avahi-utils avahi-autoipd)
@@ -220,14 +224,14 @@ env_attributes['networks'].each do |network_name, network|
   # thats basically "us in the hosts file" - this is needed and mandaory
   # Takes the host address from the attributes if defined, otherwise takes
   # the automatic ipaddress attribute (ohai)
-  host_addr = network['host']['address'] || node['ipaddress']
+  host_addr = network['host'] && network['host']['address'] || node['ipaddress']
   template local_host_path do
     source 'host.erb'
     variables(
       pub_key: lazy { File.read("/etc/tinc/#{network_name}/rsa_key.pub") },
       address: host_addr,
       port: network['network'] && network['network']['port'] || 655,
-      subnets: avahi_zeroconf_enabled ? [] : network['host']['subnets']
+      subnets: avahi_zeroconf_enabled ? [] : network_host_subnets
     )
   end
 
@@ -288,7 +292,7 @@ env_attributes['networks'].each do |network_name, network|
     Chef::Log.warn "Not this node's hostname, continuing ..."
 
     # check which hosts this peers defined to connect to
-    defined_connect_to = network['host']['connect_to']
+    defined_connect_to = network['host'] && network['host']['connect_to']
     Chef::Log.warn "That hostname is defined to be connected to #{defined_connect_to.inspect}"
 
     # Filter hosts we did not want to connect to on this peer
