@@ -50,7 +50,8 @@ Array(node['tincvpn']['networks']).detect do |network_name, network|
 
     # Just in case of ...
     if iterations >= 200
-      Chef::Log.warn 'Unable to find a free IP address after 200 iterations.'
+      Chef::Log.warn 'tinc: Unable to find a free IP address after 200 ' \
+                     'iterations.'
       break
     end
 
@@ -109,8 +110,8 @@ if Array(node['tincvpn']['networks']).size > 1
     # Removes the "default" network if it exists, is not alone, and
     # has the Avahi to false and the subnets is empty
     if avahi_enabled == false && default_host_subnets.empty?
-      Chef::Log.warn 'Removing the "default" network from attributes has ' \
-                     "it doesn't seem to be used."
+      Chef::Log.warn 'tinc: Removing the "default" network from attributes ' \
+                     "has it doesn't seem to be used."
       node.rm('tincvpn', 'networks', 'default')
     end
   end
@@ -135,7 +136,7 @@ node['tincvpn']['networks'].each do |network_name, network|
 
   if network['host']['name'] && network['host']['name'] != node['hostname']
     Chef::Log.warn(
-      "The hostname #{network['host']['name'].inspect} from tincvpn " \
+      "tinc: The hostname #{network['host']['name'].inspect} from tincvpn " \
       "attributes differs with node's hostname " \
       "(#{node['hostname'].inspect})."
     )
@@ -157,7 +158,7 @@ node['tincvpn']['networks'].each do |network_name, network|
     end
 
     if network_name.size >= 15
-      Chef::Log.warn "The network name #{network_name} is too long " \
+      Chef::Log.warn "tinc: The network name #{network_name} is too long " \
                      '(Avahi has a 15 characters limitation) which will ' \
                      'surely makes Avahi not starting correctly. ' \
                      'Please concider reducing the network name length to ' \
