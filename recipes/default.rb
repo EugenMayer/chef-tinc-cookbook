@@ -95,6 +95,7 @@ template '/etc/default/tinc' do
   source 'tinc.default.erb'
   mode '0644'
   notifies :restart, 'service[tinc]'
+  notifies :reload, 'ohai[reload_network]', :delayed
 end
 
 # Avoids creating the `default` network from default attributes when using a
@@ -214,6 +215,7 @@ node['tincvpn']['networks'].each do |network_name, network|
         avahi_zeroconf_enabled: avahi_zeroconf_enabled
       )
       notifies :reload, 'service[tinc]', :delayed
+      notifies :reload, 'ohai[reload_network]', :delayed
     end
   end
 
@@ -255,6 +257,7 @@ node['tincvpn']['networks'].each do |network_name, network|
         subnets: avahi_zeroconf_enabled ? [] : peer['tincvpn']['networks'][network_name]['host']['subnets']
       )
       notifies :restart, 'service[tinc]', :delayed
+      notifies :reload, 'ohai[reload_network]', :delayed
     end
 
     # add all hosts to our connectTo list, except ourselfs
@@ -274,6 +277,7 @@ node['tincvpn']['networks'].each do |network_name, network|
       mode: avahi_zeroconf_enabled ? 'switch' : network_mode
     )
     notifies :reload, 'service[tinc]', :delayed
+    notifies :reload, 'ohai[reload_network]', :delayed
   end
 
   # We need this for systemd configuration
