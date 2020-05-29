@@ -276,7 +276,6 @@ node['tincvpn']['networks'].each do |network_name, network|
       mode: avahi_zeroconf_enabled ? 'switch' : network_mode
     )
     notifies :restart, 'service[tinc]', :immediately
-    notifies :reload, 'ohai[reload network]', :immediately
   end
 
   # We need this for systemd configuration
