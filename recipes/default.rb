@@ -7,7 +7,7 @@ package %w(tinc bridge-utils)
 # prepared for later multi-network per host deployments, not implemented yet
 
 service 'tinc' do
-  action [ :enable, :start ]
+  action %i[enable start]
 end
 
 # As this cookbook is updating the node's network (adding a new network
@@ -16,8 +16,8 @@ end
 # `network` part on notifing it.
 #
 # (This means that this block is not executed immediately but when executing the
-# following: `notifies :reload, 'ohai[reload_network]', :immediately`)
-ohai 'reload_network' do
+# following: `notifies :reload, 'ohai[reload network]', :immediately`)
+ohai 'reload network' do
   action :reload
   plugin 'network'
 end
@@ -94,8 +94,7 @@ end
 template '/etc/default/tinc' do
   source 'tinc.default.erb'
   mode '0644'
-  notifies :restart, 'service[tinc]'
-  notifies :reload, 'ohai[reload_network]', :delayed
+  notifies :restart, 'service[tinc]', :delayed
 end
 
 # Avoids creating the `default` network from default attributes when using a
@@ -155,7 +154,7 @@ node['tincvpn']['networks'].each do |network_name, network|
     package %w(avahi-daemon avahi-utils avahi-autoipd)
 
     service 'avahi-daemon' do
-      action [ :enable, :start ]
+      action %i[enable start]
     end
 
     if network_name.size >= 15
@@ -214,8 +213,8 @@ node['tincvpn']['networks'].each do |network_name, network|
         tunnel_netmask: network['network'] && network['network']['tunnelnetmask'],
         avahi_zeroconf_enabled: avahi_zeroconf_enabled
       )
-      notifies :reload, 'service[tinc]', :delayed
-      notifies :reload, 'ohai[reload_network]', :delayed
+      notifies :restart, 'service[tinc]', :immediately
+      notifies :reload, 'ohai[reload network]', :immediately
     end
   end
 
@@ -257,7 +256,7 @@ node['tincvpn']['networks'].each do |network_name, network|
         subnets: avahi_zeroconf_enabled ? [] : peer['tincvpn']['networks'][network_name]['host']['subnets']
       )
       notifies :restart, 'service[tinc]', :delayed
-      notifies :reload, 'ohai[reload_network]', :delayed
+      notifies :reload, 'ohai[reload network]', :delayed
     end
 
     # add all hosts to our connectTo list, except ourselfs
@@ -276,14 +275,13 @@ node['tincvpn']['networks'].each do |network_name, network|
       hosts_connect_to: hosts_connect_to,
       mode: avahi_zeroconf_enabled ? 'switch' : network_mode
     )
-    notifies :reload, 'service[tinc]', :delayed
-    notifies :reload, 'ohai[reload_network]', :delayed
+    notifies :restart, 'service[tinc]', :immediately
   end
 
   # We need this for systemd configuration
   # /etc/tinc/nets.boot are no longer working / is ignored, see https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=841052#27
   service "tinc@#{network_name}" do
-    action [ :enable, :start]
+    action %i[enable start]
     only_if { File.exist?('/bin/systemd') }
   end
 end
@@ -294,6 +292,6 @@ template '/etc/tinc/nets.boot' do
   variables(
     networks: node['tincvpn']['networks'].keys
   )
-  notifies :restart, 'service[tinc]', :immediately
-  notifies :reload, 'ohai[reload_network]', :immediately
+  notifies :restart, 'service[tinc]', :delayed
+  notifies :reload, 'ohai[reload network]', :delayed
 end
