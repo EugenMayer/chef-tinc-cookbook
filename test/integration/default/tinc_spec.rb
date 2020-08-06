@@ -71,11 +71,9 @@ end
 describe service('tinc') do
   it { should be_installed }
   it { should be_enabled }
-  it { should be_running }
 end
 
 describe service('tinc@default') do
   it { should be_installed }
   it { should be_enabled }
-  it { should be_running }
 end
