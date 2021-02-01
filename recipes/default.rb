@@ -34,7 +34,7 @@ env_attributes = if node.environment == '_default'
                    else
                      Chef::Log.warn 'tinc: The node has no Tinc attribute ' \
                                     "for the #{node.environment.inspect} " \
-                                    "environment/policy group, therefore " \
+                                    'environment/policy group, therefore ' \
                                     'this cookbook will not do anything.'
 
                      {}
@@ -243,7 +243,7 @@ Array(env_attributes['networks']).each do |network_name, network|
             "&& rm -f /etc/tinc/#{network_name}/tinc.conf " \
             "&& (yes | tincd  -n #{network_name} -K4096)"
     creates priv_key_location
-    not_if { File.exist?(priv_key_location) }
+    not_if { ::File.exist?(priv_key_location) }
   end
 
   # local host entry in hosts/
@@ -382,7 +382,8 @@ Array(env_attributes['networks']).each do |network_name, network|
   # see https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=841052#27
   service "tinc@#{network_name}" do
     action %i[enable start]
-    only_if { File.exist?('/bin/systemd') }
+    only_if { node.normal['tincvpn']['allow_service_restart'] }
+    only_if { ::File.exist?('/bin/systemd') }
   end
 end
 

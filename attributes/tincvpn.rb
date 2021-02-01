@@ -33,3 +33,7 @@ default[:tincvpn][:networks]['default'][:host][:address] = nil
 # Avahi will automatically assign a Link-local address to your nodes.
 # (https://en.wikipedia.org/wiki/Link-local_address)
 default[:tincvpn][:networks]['default'][:host][:avahi_zeroconf_enabled] = false
+
+# In the case you're experiencing issues when the service is restarted, you can
+# prevent the cookbook from restarting by setting this attribute to `false`.
+default[:tincvpn][:allow_service_restart] = true
