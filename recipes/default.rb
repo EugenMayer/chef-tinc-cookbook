@@ -8,6 +8,7 @@ package %w(tinc bridge-utils)
 
 service 'tinc' do
   action %i[enable start]
+  only_if { node.normal['tincvpn']['allow_service_restart'] }
 end
 
 # As this cookbook is updating the node's network (adding a new network
