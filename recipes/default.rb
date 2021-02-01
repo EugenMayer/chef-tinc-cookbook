@@ -256,7 +256,7 @@ Array(env_attributes['networks']).each do |network_name, network|
 
   node_subnets = node.normal['tincvpn']['networks'][network_name]['host']['subnets']
   Chef::Log.info "node_subnets: #{node_subnets.inspect}"
-  subnets = avahi_zeroconf_enabled ? [] : (network_host_subnets || node_subnets)
+  subnets = avahi_zeroconf_enabled ? [] : (network_host_subnets.empty? ? node_subnets : network_host_subnets)
 
   Chef::Log.info "Updating #{local_host_path} with subnets '#{subnets.inspect}'"
   template local_host_path do
