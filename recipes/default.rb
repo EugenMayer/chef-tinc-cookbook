@@ -251,13 +251,26 @@ Array(env_attributes['networks']).each do |network_name, network|
   # Takes the host address from the attributes if defined, otherwise takes
   # the automatic ipaddress attribute (ohai)
   host_addr = network['host'] && network['host']['address'] || node['ipaddress']
+
+  # building the node's subnet list
+  #
+  # This code will set an empty subnet list when Avahi is enabled, otherwise it
+  # will either takes the subnets from the network host if any is given, or will
+  # takes the subnets from the node's configuration.
+  node_subnets = node.normal['tincvpn']['networks'][network_name]['host']['subnets']
+  subnets = if avahi_zeroconf_enabled
+              []
+            else
+              network_host_subnets.empty? ? node_subnets : network_host_subnets
+            end
+
   template local_host_path do
     source 'host.erb'
     variables(
       pub_key: lazy { File.read("/etc/tinc/#{network_name}/rsa_key.pub") },
       address: host_addr,
       port: network['network'] && network['network']['port'] || 655,
-      subnets: avahi_zeroconf_enabled ? [] : network_host_subnets
+      subnets: subnets
     )
   end
 
