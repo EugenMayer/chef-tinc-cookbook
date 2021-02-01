@@ -254,7 +254,7 @@ Array(env_attributes['networks']).each do |network_name, network|
   # the automatic ipaddress attribute (ohai)
   host_addr = network['host'] && network['host']['address'] || node['ipaddress']
 
-  subnets = avahi_zeroconf_enabled ? [] : network_host_subnets
+  subnets = avahi_zeroconf_enabled ? [] : (network_host_subnets || node.normal['tincvpn']['networks'][network_name]['host']['subnets'])
 
   Chef::Log.info "Updating #{local_host_path} with subnets '#{subnets.inspect}'"
   template local_host_path do
