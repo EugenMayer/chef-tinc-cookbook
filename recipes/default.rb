@@ -216,7 +216,7 @@ Array(env_attributes['networks']).each do |network_name, network|
   priv_key_location = "/etc/tinc/#{network_name}/rsa_key.priv"
 
   avahi_zeroconf_enabled = network['host'] && network['host']['avahi_zeroconf_enabled']
-  Chef::Log.info "Avahi is #{avahi_zeroconf_enabled ? 'en' : 'dis'}able"
+  Chef::Log.info "Avahi is #{avahi_zeroconf_enabled ? 'en' : 'dis'}abled"
 
   if avahi_zeroconf_enabled
     package %w(avahi-daemon avahi-utils avahi-autoipd)
@@ -254,7 +254,9 @@ Array(env_attributes['networks']).each do |network_name, network|
   # the automatic ipaddress attribute (ohai)
   host_addr = network['host'] && network['host']['address'] || node['ipaddress']
 
-  subnets = avahi_zeroconf_enabled ? [] : (network_host_subnets || node.normal['tincvpn']['networks'][network_name]['host']['subnets'])
+  node_subnets = node.normal['tincvpn']['networks'][network_name]['host']['subnets']
+  Chef::Log.info "node_subnets: #{node_subnets.inspect}"
+  subnets = avahi_zeroconf_enabled ? [] : (network_host_subnets || node_subnets)
 
   Chef::Log.info "Updating #{local_host_path} with subnets '#{subnets.inspect}'"
   template local_host_path do
