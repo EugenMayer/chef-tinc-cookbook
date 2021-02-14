@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/EugenMayer/chef-tinc-cookbook.svg?branch=master)](https://travis-ci.org/EugenMayer/chef-tinc-cookbook)
+[![Build Status](https://travis-ci.com/EugenMayer/chef-tinc-cookbook.svg?branch=master)](https://travis-ci.com/EugenMayer/chef-tinc-cookbook)
 
 # Description
 
