@@ -4,8 +4,8 @@ maintainer_email 'eugen.mayer@kontextwork.de'
 license          'Apache 2.0'
 description      'Tinc Virtual Private Network'
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
-version           '1.0.1'
-chef_version      '>= 13'
+version           '2.0.0-beta1'
+chef_version      '>= 15'
 
 %w[ ubuntu debian ].each do |os|
   supports os
