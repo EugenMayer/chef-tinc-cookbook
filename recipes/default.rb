@@ -3,7 +3,7 @@
 require 'ipaddress'
 require 'openssl'
 
-package %w(tinc bridge-utils)
+package %w[tinc bridge-utils]
 # prepared for later multi-network per host deployments, not implemented yet
 
 service 'tinc' do
@@ -34,7 +34,7 @@ env_attributes = if node.environment == '_default'
                    else
                      Chef::Log.warn 'tinc: The node has no Tinc attribute ' \
                                     "for the #{node.environment.inspect} " \
-                                    "environment/policy group, therefore " \
+                                    'environment/policy group, therefore ' \
                                     'this cookbook will not do anything.'
 
                      {}
@@ -121,9 +121,7 @@ Array(env_attributes['networks']).detect do |network_name, network|
 
     # Taking randomly an IP address from the range
     new_ip_address = nil
-    until new_ip_address
-      new_ip_address = ip_addresses[rand(0..ip_addresses.size - 1)]
-    end
+    new_ip_address = ip_addresses[rand(0..ip_addresses.size - 1)] until new_ip_address
 
     # Checking if that IP address is free
     peers.each do |peer|
@@ -147,14 +145,22 @@ Array(env_attributes['networks']).detect do |network_name, network|
   #
   # Using `node.normal` stores the data in a JSON file with then node's name
   # in your chef repository.
-  if unique_ip_address
-    Chef::Log.warn "tinc: Saving IP address #{unique_ip_address} and " \
-                   "mask #{unique_ip_address.netmask.inspect} to " \
-                   "the #{network_name} data ..."
+  next unless unique_ip_address
 
-    node.normal['tincvpn']['networks'][network_name]['network']['tunneladdr'] = unique_ip_address.to_s
-    node.normal['tincvpn']['networks'][network_name]['network']['tunnelnetmask'] = unique_ip_address.netmask
+  Chef::Log.warn "tinc: Saving IP address #{unique_ip_address} and " \
+                 "mask #{unique_ip_address.netmask.inspect} to " \
+                 "the #{network_name} data ..."
 
+  node.normal['tincvpn']['networks'][network_name]['network']['tunneladdr'] = unique_ip_address.to_s
+  node.normal['tincvpn']['networks'][network_name]['network']['tunnelnetmask'] = unique_ip_address.netmask
+
+  network_mode = network['network'] && network['network']['mode']
+  network_mode ||= 'router' # Default tinc mode value
+
+  if network_mode == 'switch'
+    Chef::Log.warn "tinc: Not created a subnet for #{unique_ip_address} since " \
+    'we are running in switch mode'
+  else
     subnets = []
 
     if env_attributes['networks'][network_name]['host']
@@ -217,7 +223,7 @@ Array(env_attributes['networks']).each do |network_name, network|
   avahi_zeroconf_enabled = network['host'] && network['host']['avahi_zeroconf_enabled']
 
   if avahi_zeroconf_enabled
-    package %w(avahi-daemon avahi-utils avahi-autoipd)
+    package %w[avahi-daemon avahi-utils avahi-autoipd]
 
     service 'avahi-daemon' do
       action %i[enable start]
